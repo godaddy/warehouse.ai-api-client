@@ -1,0 +1,42 @@
+{
+  "name": "warehouse.ai-api-client",
+  "description": "Node.JS API to communicate with warehouse.ai",
+  "version": "1.2.2",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test.js",
+    "lint": "eslint-godaddy --fix *.js lib/*.js",
+    "pretest": "npm run lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:warehouseai/warehouse.ai-api-client.git"
+  },
+  "keywords": [
+    "API",
+    "node",
+    "warehouse.ai"
+  ],
+  "author": "GoDaddy Operating Company, LLC",
+  "license": "MIT",
+  "engines": {
+    "node": ">=5.0.0"
+  },
+  "dependencies": {
+    "demolish": "~1.0.2",
+    "diagnostics": "~1.0.1",
+    "querystringify": "0.0.3",
+    "request": "^2.70.0"
+  },
+  "devDependencies": {
+    "assume": "^1.4.x",
+    "babel-eslint": "^6.1.2",
+    "eslint": "^3.5.0",
+    "eslint-config-godaddy": "~1.0.0",
+    "eslint-plugin-json": "^1.2.0",
+    "eslint-plugin-mocha": "^2.0.0",
+    "eslint-plugin-react": "^4.1.0",
+    "jscs-jsx-rules": "0.0.1",
+    "mocha": "2.5.x"
+  }
+}
