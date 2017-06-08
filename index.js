@@ -60,7 +60,7 @@ Warehouse.prototype.publish = function publish(params, fn) {
   const method = 'PUT';
 
   return this.send(
-    [name],
+    [encodeURIComponent(name)],
     { body, method },
     fn
   );
