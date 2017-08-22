@@ -1,10 +1,9 @@
-
-
 const debug = require('diagnostics')('warehouse');
 const qs = require('querystringify');
 const destroy = require('demolish');
 const request = require('request');
 const Builds = require('./builds');
+const retry = require('retryme');
 
 /**
  * Node.JS API to interact the Warehouse.
@@ -30,6 +29,7 @@ function Warehouse(options) {
   if (!options.uri) throw new Error('options.uri required');
 
   options = options || {};
+  this.retry = options.retry || {};
   this.uri = options.uri;
   this.auth = options.auth ? 'Bearer ' + options.auth : null;
   this.timeout = options.timeout || 3e4;
@@ -105,15 +105,27 @@ Warehouse.prototype.send = function send(pathname, options, next) {
   options.url = [this.uri].concat(pathname).join('/') + qs.stringify(options.query, true);
   debug('Sending %s request to %s with timeout %d', options.method, options.url, this.timeout);
 
-  request(options, function replied(error, response, body) {
-    if (error) return next(error);
-
-    if (response.statusCode === 404) return next(new Error(`404 Not Found ${JSON.stringify(body)}`));
-
-    if (response.statusCode < 200 || response.statusCode > 299) return next(new Error(`Invalid status code ${response.statusCode} ${body ? JSON.stringify(body) : ''}`));
-
-    next(null, body);
+  //
+  // Ignore 404 and 400's when it comes to retries
+  //
+  const operation = retry.op(this.retry, (err) => {
+    return err.message.includes('404')
+      || err.message.includes('400');
   });
+
+  operation.attempt(fn => {
+    request(options, function replied(error, response, body) {
+      if (error) return fn(error);
+
+      if (response.statusCode === 404) return fn(new Error(`404 Not Found ${JSON.stringify(body)}`));
+      if (response.statusCode === 400) return fn(new Error(`400 Bad Request ${JSON.stringify(body)}`));
+
+      if (response.statusCode < 200 || response.statusCode > 299) return fn(new Error(`Invalid status code ${response.statusCode} ${body ? JSON.stringify(body) : ''}`));
+
+      fn(null, body);
+    });
+  }, next);
+
 
   return this;
 };
