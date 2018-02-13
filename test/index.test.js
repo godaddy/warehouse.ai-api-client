@@ -1,5 +1,5 @@
 const assume = require('assume');
-const Warehouse = require('./');
+const Warehouse = require('..');
 
 describe('warehousei.ai-api-client.tests', function () {
   const wrhs = new Warehouse('https://my-warehouse-api');
