@@ -1,16 +1,17 @@
-const debug = require('diagnostics')('warehouse');
+const debug = require('diagnostics')('warehouse.ai-api-client');
 const qs = require('querystringify');
 const destroy = require('demolish');
 const request = require('request');
-const Builds = require('./builds');
 const retry = require('retryme');
+const Builds = require('./builds');
+const Verify = require('./verify');
 
 /**
  * Node.JS API to interact the Warehouse.
  *
  * Options:
  *
- * - apiUrl: URL of the API
+ * - uri: URL of the API
  * - timeout: Timeout in ms
  *
  * @constructor
@@ -40,10 +41,15 @@ function Warehouse(options) {
   //
   this.strictSSL = options.strictSSL || false;
 
+  // Options for verify
+  this.conc = options.concurrency || options.conc || 10;
+  this.dry = options.dry || false;
+
   //
   // Special subscriber API to manage subscription lists.
   //
   this.builds = new Builds(this);
+  this.verifier = new Verify(this);
 }
 
 /**
@@ -64,6 +70,10 @@ Warehouse.prototype.publish = function publish(params, fn) {
     { body, method },
     fn
   );
+};
+
+Warehouse.prototype.verify = function v(opts, fn) {
+  return this.verifier.execute(opts, fn);
 };
 
 /**
@@ -136,13 +146,14 @@ Warehouse.prototype.send = function send(pathname, options, next) {
  * @returns {Boolean}
  * @api public
  */
-Warehouse.prototype.destroy = destroy('send, builds');
+Warehouse.prototype.destroy = destroy('send, builds', 'publish', 'verify');
 
 //
 // Expose the extra classes on the Warehouse class.
 //
 Warehouse.Builds = Builds;
 
+Warehouse.Verify = Verify;
 //
 // Expose the API.
 //
