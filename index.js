@@ -72,8 +72,16 @@ Warehouse.prototype.publish = function publish(params, fn) {
   );
 };
 
+/**
+ * Verify a given pkg, env combination
+ * @param {Object} opts - Options for verify { pkg, env, dry, conc, numFiles }
+ * @param {Function} fn - Continuation to call when complete
+ * @returns {Warehouse} instance of Warehouse
+ * @api public
+ */
 Warehouse.prototype.verify = function v(opts, fn) {
-  return this.verifier.execute(opts, fn);
+  this.verifier.execute(opts, fn);
+  return this;
 };
 
 /**
