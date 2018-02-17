@@ -6,6 +6,7 @@ const url = require('url');
 class Verify {
   constructor(wrhs) {
     this.wrhs = wrhs;
+    this.strictSSL = wrhs.strictSSL;
     this.conc = wrhs.conc || 10;
     this.dry = wrhs.dry;
   }
@@ -40,12 +41,12 @@ class Verify {
     }
 
     debug(`${buildId} | Verify assets`);
-    async.map(urls, function getOne(uri, next) {
+    async.map(urls, (uri, next) => {
       debug(`${buildId} | Fetch ${uri}`);
-      request.get(uri, (err, res) => {
+      request.get(uri, { strictSSL: this.strictSSL }, (err, res) => {
         if (err || res.statusCode !== 200) {
           debug(`${buildId} | Fail ${uri}: ${err || res.statusCode}`);
-          return next(null, url);
+          return next(null, uri);
         }
 
         debug(`${buildId} | Fetch ok ${uri}`);
