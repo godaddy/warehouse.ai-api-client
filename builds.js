@@ -37,7 +37,11 @@ function hash(options) {
  * @private
  */
 function _refreshCache(asyncLimit) {
-  if (!this.cache || this.cacheRefreshing) {
+  if (!this.cache) {
+    return;
+  }
+  if (this.cacheRefreshing) {
+    debug('Skipping a build cache refresh interval, previous interval took too long.');
     return;
   }
 
@@ -68,7 +72,8 @@ function _refreshCache(asyncLimit) {
  * @param {Object} [options.buildCache] An options object for caching build information
  * @param {boolean} [options.buildCache.enabled] True if you want to use a cache of build information,
  * False if you want to hit the service every time
- * @param {number} [options.buildCache.refreshInterval] An interval in ms on which the cache should be refreshed
+ * @param {number} [options.buildCache.refreshInterval] An interval in ms on which the cache should be refreshed.
+ * If the refresh takes longer than the interval, intervals will be skipped.
  * @param {number} [options.buildCache.refreshLimit] How many cache entries can be refreshed at once
  * @public
  */
@@ -78,9 +83,24 @@ function Builds(warehouse, options) {
 
   options = options || {};
   if (options.buildCache && options.buildCache.enabled) {
+    
+    /**
+     * @member {Map} cache The build cache
+     * @private
+     */
     this.cache = new Map();
-    this.cacheRefreshLimit = options.buildCache.refreshLimit || defaultCacheRefreshLimit;
-    this.cacheRefreshInterval = options.buildCache.refreshInterval || defaultCacheRefreshInterval;
+
+    /**
+     * @member {number} _cacheRefreshLimit The number of cache entries that can be simultaneously refreshed
+     * @private
+     */
+    this._cacheRefreshLimit = options.buildCache.refreshLimit || defaultCacheRefreshLimit;
+
+    /**
+     * @member {number} _cacheRefreshInterval The interval in ms on which the cache is refreshed refreshed
+     * @private
+     */
+    this._cacheRefreshInterval = options.buildCache.refreshInterval || defaultCacheRefreshInterval;
     this.resumeCacheRefresh();
   }
 }
@@ -98,10 +118,10 @@ Builds.prototype.clearCache = function clearCache() {
  * Allows you to resume the process of refreshing the build cache
  */
 Builds.prototype.resumeCacheRefresh = function resumeCacheRefresh() {
-  if (this.refreshInterval !== null) {
-    this.refreshInterval = setInterval(
-      _refreshCache.bind(this, this.cacheRefreshLimit),
-      this.cacheRefreshInterval);
+  if (this._refreshInterval !== null) {
+    this._refreshInterval = setInterval(
+      _refreshCache.bind(this, this._cacheRefreshLimit),
+      this._cacheRefreshInterval);
   }
 };
 
@@ -109,9 +129,9 @@ Builds.prototype.resumeCacheRefresh = function resumeCacheRefresh() {
  * Allows you to stop the process of refreshing the build cache
  */
 Builds.prototype.stopCacheRefresh = function stopCacheRefresh() {
-  if (this.refreshInterval !== null) {
-    clearInterval(this.refreshInterval);
-    this.refreshInterval = null;
+  if (this._refreshInterval !== null) {
+    clearInterval(this._refreshInterval);
+    this._refreshInterval = null;
   }
 };
 
