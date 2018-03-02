@@ -85,18 +85,29 @@ function Builds(warehouse, options) {
   }
 }
 
+/**
+ * Clears the build cache if one exists
+ */
 Builds.prototype.clearCache = function clearCache() {
   if (this.cache) {
     this.cache.clear();
   }
 };
 
+/**
+ * Allows you to resume the process of refreshing the build cache
+ */
 Builds.prototype.resumeCacheRefresh = function resumeCacheRefresh() {
-  this.refreshInterval = setInterval(
-    _refreshCache.bind(this, this.cacheRefreshLimit),
-    this.cacheRefreshInterval);
+  if (this.refreshInterval !== null) {
+    this.refreshInterval = setInterval(
+      _refreshCache.bind(this, this.cacheRefreshLimit),
+      this.cacheRefreshInterval);
+  }
 };
 
+/**
+ * Allows you to stop the process of refreshing the build cache
+ */
 Builds.prototype.stopCacheRefresh = function stopCacheRefresh() {
   if (this.refreshInterval !== null) {
     clearInterval(this.refreshInterval);
