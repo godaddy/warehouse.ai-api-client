@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test/*.test.js",
-    "lint": "eslint-godaddy --fix *.js lib/*.js",
+    "lint": "eslint-godaddy --fix *.js lib/*.js test/*.js",
     "pretest": "npm run lint"
   },
   "repository": {
