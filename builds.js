@@ -17,20 +17,6 @@ const defaultCacheRefreshInterval = 20 * 60 * 60 * 1000;
 const defaultCacheRefreshLimit = 10;
 
 /**
- * Generate md5 hash to be used as caching key.
- *
- * @param {Object} options Properties to generate key from.
- * @returns {string} Unique identifier.
- * @private
- */
-function hash(options) {
-  return crypto
-    .createHash('md5')
-    .update(JSON.stringify(options))
-    .digest('hex');
-}
-
-/**
  * Build interface for the Warehouse API.
  *
  * @class Builds
@@ -124,6 +110,7 @@ class Builds {
     if (!this.cache) {
       return;
     }
+
     if (this.cacheRefreshing) {
       debug('Skipping a build cache refresh interval, previous interval took too long.');
       return;
@@ -132,8 +119,8 @@ class Builds {
     this.cacheRefreshing = true;
 
     // TODO: leave the cache alone, go fetch new data and replace.
-    async.eachLimit(this.cache.values, this._cacheRefreshLimit, (build, next) => {
-      this._get(this, build, error => {
+    async.eachLimit(this.cache.values(), this._cacheRefreshLimit, (build, next) => {
+      this._get(build, error => {
         if (error) {
           const { pkg, env, version } = build;
           debug('Error refreshing cache for: pkg = %s, env = %s, version = %s', pkg, env, version);
@@ -145,6 +132,20 @@ class Builds {
       this.cacheRefreshing = false;
       debug('Error refreshing cache: %s', error);
     });
+  }
+
+  /**
+   * Generate md5 hash to be used as caching key.
+   *
+   * @param {Object} options Properties to generate key from.
+   * @returns {string} Unique identifier.
+   * @private
+   */
+  _getHashKey(options) {
+    return crypto
+      .createHash('md5')
+      .update(JSON.stringify(options))
+      .digest('hex');
   }
 
   /**
@@ -174,7 +175,7 @@ class Builds {
     pkg = encodeURIComponent(pkg);
 
     if (this.cache && !params.bypassCache) {
-      const cacheKey = hash({
+      const cacheKey = this._getHashKey({
         type: 'builds',
         env,
         version,
@@ -220,7 +221,7 @@ class Builds {
 
         if (this.cache) {
           debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
-          const cacheKey = hash({
+          const cacheKey = this._getHashKey({
             type: 'builds',
             env,
             version,

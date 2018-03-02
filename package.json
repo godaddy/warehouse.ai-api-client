@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "assume": "^1.4.x",
+    "assume-sinon": "^1.0.0",
     "babel-eslint": "^6.1.2",
     "clone": "^2.1.1",
     "eslint": "^3.5.0",
