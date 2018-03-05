@@ -46,7 +46,7 @@ class Builds {
        * @member {Map} cache The build cache
        * @private
        */
-      this.cache = new Map();
+      this._cache = new Map();
 
       /**
        * @member {number} _cacheRefreshLimit The number of cache entries that can be simultaneously refreshed
@@ -69,8 +69,8 @@ class Builds {
    * @public
    */
   clearCache() {
-    if (this.cache) {
-      this.cache.clear();
+    if (this._cache) {
+      this._cache.clear();
     }
   }
 
@@ -107,19 +107,19 @@ class Builds {
    * @private
    */
   _refreshCache() {
-    if (!this.cache) {
+    if (!this._cache) {
       return;
     }
 
-    if (this.cacheRefreshing) {
+    if (this._cacheRefreshing) {
       debug('Skipping a build cache refresh interval, previous interval took too long.');
       return;
     }
 
-    this.cacheRefreshing = true;
+    this._cacheRefreshing = true;
 
     // TODO: leave the cache alone, go fetch new data and replace.
-    async.eachLimit(this.cache.values(), this._cacheRefreshLimit, (build, next) => {
+    async.eachLimit(this._cache.values(), this._cacheRefreshLimit, (build, next) => {
       this._get(build, error => {
         if (error) {
           const { pkg, env, version } = build;
@@ -129,7 +129,7 @@ class Builds {
         next(null);
       });
     }, error => {
-      this.cacheRefreshing = false;
+      this._cacheRefreshing = false;
       debug('Error refreshing cache: %s', error);
     });
   }
@@ -148,6 +148,50 @@ class Builds {
       .digest('hex');
   }
 
+  _readParams(params) {
+    const env = environments.get(params.environment || params.env) || 'dev';
+    const version = params.v || params.version;
+    const meta = params.meta ? 'meta' : null;
+    const locale = params.locale || 'en-US';
+    let pkg = params.package || params.pkg;
+    if (pkg) {
+      //
+      // Handle scoped packages
+      //
+      pkg = encodeURIComponent(pkg);
+    }
+    return { env, version, meta, locale, pkg };
+  }
+
+  getFromCache(params, fn) {
+    if (!this._cache) {
+      return fn(
+        new Error('BuildCache must be enabled to use getFromCache')
+      );
+    }
+
+    const { env, version, meta, locale, pkg } = this._readParams(params);
+
+    if (!pkg) {
+      return fn(
+        new Error('invalid parameters supplied, missing `pkg`')
+      );
+    }
+
+    const cacheKey = this._getHashKey({
+      type: 'builds',
+      env,
+      version,
+      meta,
+      locale,
+      pkg
+    });
+
+    const build = this._cache.get(cacheKey);
+    fn(null, build && build.data || null);
+    return this.warehouse;
+  }
+
   /**
    * Get build information. Build information may be read from the cache if configured.
    *
@@ -157,24 +201,15 @@ class Builds {
    * @public
    */
   get(params, fn) {
-    const env = environments.get(params.environment || params.env) || 'dev';
-    const version = params.v || params.version;
-    const meta = params.meta ? 'meta' : null;
-    const locale = params.locale || 'en-US';
-    let pkg = params.package || params.pkg;
+    const { env, version, meta, locale, pkg } = this._readParams(params);
 
-    if (!pkg || !env) {
+    if (!pkg) {
       return fn(
-        new Error('invalid parameters supplied, missing `pkg` or `env`')
+        new Error('invalid parameters supplied, missing `pkg`')
       );
     }
 
-    //
-    // Handle scoped packages
-    //
-    pkg = encodeURIComponent(pkg);
-
-    if (this.cache && !params.bypassCache) {
+    if (this._cache && !params.bypassCache) {
       const cacheKey = this._getHashKey({
         type: 'builds',
         env,
@@ -184,7 +219,7 @@ class Builds {
         pkg
       });
 
-      const build = this.cache.get(cacheKey);
+      const build = this._cache.get(cacheKey);
       if (build) {
         debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
         fn(null, build.data);
@@ -219,7 +254,7 @@ class Builds {
           return;
         }
 
-        if (this.cache) {
+        if (this._cache) {
           debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
           const cacheKey = this._getHashKey({
             type: 'builds',
@@ -229,7 +264,7 @@ class Builds {
             locale,
             pkg
           });
-          this.cache.set(cacheKey, {
+          this._cache.set(cacheKey, {
             pkg,
             env,
             version,

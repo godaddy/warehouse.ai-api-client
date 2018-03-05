@@ -57,7 +57,7 @@ describe('Builds', function () {
       builds = new Builds();
       builds.get({ pkg: null }, error => {
         assume(error).is.truthy();
-        assume(error.message).contains('invalid parameters supplied, missing `pkg` or `env`');
+        assume(error.message).contains('invalid parameters supplied, missing `pkg`');
         done();
       });
     });
@@ -157,15 +157,15 @@ describe('Builds', function () {
     describe('build cache', function () {
       it('caches data on .get', function (done) {
         builds = new Builds(wrhs, { buildCache: { enabled: true }});
-        assume(builds.cache).is.truthy();
-        assume(builds.cache.size).equals(0);
+        assume(builds._cache).is.truthy();
+        assume(builds._cache.size).equals(0);
 
         builds.get({ pkg: 'some-pkg' }, (error, data) => {
           assume(error).is.falsey();
           assume(data).equals(buildData);
           assume(sendStub).is.called(1);
-          assume(builds.cache).is.truthy();
-          assume(builds.cache.size).equals(1);
+          assume(builds._cache).is.truthy();
+          assume(builds._cache.size).equals(1);
           done();
         });
       });
@@ -183,7 +183,7 @@ describe('Builds', function () {
           pkg: 'first-package'
         };
         const cacheKeyA = builds._getHashKey(paramsA);
-        builds.cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
+        builds._cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
 
         const paramsB = {
           type: 'builds',
@@ -194,9 +194,9 @@ describe('Builds', function () {
           pkg: 'second-package'
         };
         const cacheKeyB = builds._getHashKey(paramsB);
-        builds.cache.set(cacheKeyB, Object.assign({}, paramsB, { data: { bar: 2 }}));
-        assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
-        assume(builds.cache.get(cacheKeyB).data).does.not.equals(buildData);
+        builds._cache.set(cacheKeyB, Object.assign({}, paramsB, { data: { bar: 2 }}));
+        assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
+        assume(builds._cache.get(cacheKeyB).data).does.not.equals(buildData);
         /* eslint-enable no-undefined */
 
         builds._refreshCache();
@@ -210,8 +210,8 @@ describe('Builds', function () {
             'builds/second-package/test/3.2.1',
             { query: { locale: 'fr-FR' }});
 
-          assume(builds.cache.get(cacheKeyA).data).equals(buildData);
-          assume(builds.cache.get(cacheKeyB).data).equals(buildData);
+          assume(builds._cache.get(cacheKeyA).data).equals(buildData);
+          assume(builds._cache.get(cacheKeyB).data).equals(buildData);
           done();
         }, 1);
       });
@@ -233,9 +233,9 @@ describe('Builds', function () {
           pkg: 'first-package'
         };
         const cacheKeyA = builds._getHashKey(paramsA);
-        builds.cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
-        assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
-        assume(builds.cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
+        builds._cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
+        assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
+        assume(builds._cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
         /* eslint-enable no-undefined */
 
         builds._refreshCache();
@@ -246,8 +246,8 @@ describe('Builds', function () {
             'builds/first-package/dev',
             { query: { locale: 'en-NZ' }});
 
-          assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
-          assume(builds.cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
+          assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
+          assume(builds._cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
           done();
         }, 1);
       });
@@ -255,8 +255,8 @@ describe('Builds', function () {
       it('prevents re-entrancy into refresh', function (done) {
         builds = new Builds(wrhs, { buildCache: { enabled: true }});
 
-        builds.cache.set('a', { pkg: 'first-pkg', locale: 'en-NZ' });
-        builds.cache.set('b', { pkg: 'second-pkg', locale: 'en-NZ' });
+        builds._cache.set('a', { pkg: 'first-pkg', locale: 'en-NZ' });
+        builds._cache.set('b', { pkg: 'second-pkg', locale: 'en-NZ' });
 
         builds._refreshCache();
         builds._refreshCache();
@@ -280,24 +280,85 @@ describe('Builds', function () {
 
       it('refreshing when cache disabled doesn\'t throw', function () {
         builds = new Builds(wrhs, { buildCache: { enabled: false }});
-        assume(builds.cache).does.not.exist();
+        assume(builds._cache).does.not.exist();
         assume(() => builds._refreshCache()).does.not.throw();
       });
 
       it('the cache can be cleared', function () {
         builds = new Builds(wrhs, { buildCache: { enabled: true }});
-        builds.cache.set('a', 'b');
-        assume(builds.cache.size).equals(1);
+        builds._cache.set('a', 'b');
+        assume(builds._cache.size).equals(1);
         builds.clearCache();
-        assume(builds.cache.size).equals(0);
+        assume(builds._cache.size).equals(0);
       });
 
       it('clearing the cache when cache disabled doesn\'t throw', function () {
         builds = new Builds(wrhs, { buildCache: { enabled: false }});
-        assume(builds.cache).does.not.exist();
+        assume(builds._cache).does.not.exist();
         assume(() => builds.clearCache()).does.not.throw();
       });
     });
+  });
+
+  describe('.getFromCache', function () {
+    it('yields an error if cache is not enabled', function (done) {
+      builds = new Builds(wrhs, { buildCache: { enabled: false }});
+
+      assume(builds._cache).does.not.exist();
+      builds.getFromCache({ pkg: 'some-pkg' }, error => {
+        assume(error).is.truthy();
+        assume(error.message).contains('BuildCache must be enabled to use getFromCache');
+        done();
+      });
+    });
+
+    it('yields an error if no package specified', function (done) {
+      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+      builds.getFromCache({ pkg: null }, error => {
+        assume(error).is.truthy();
+        assume(error.message).contains('invalid parameters supplied, missing `pkg`');
+        done();
+      });
+    });
+
+    it('yields falsey when build not in the cache', function (done) {
+      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+      builds.getFromCache({ pkg: 'some-pkg' }, (error, data) => {
+        assume(error).is.falsey();
+        assume(data).is.falsey();
+        done();
+      });
+    });
+
+    it('yields the build when it is cached', function (done) {
+      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+      /* eslint-disable no-undefined */
+      const paramsA = {
+        type: 'builds',
+        env: 'dev',
+        version: undefined,
+        meta: null,
+        locale: 'en-NZ',
+        pkg: 'first-package'
+      };
+      const cacheKeyA = builds._getHashKey(paramsA);
+      builds._cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
+      assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
+      assume(builds._cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
+      /* eslint-enable no-undefined */
+
+      builds.getFromCache({ env: 'dev', locale: 'en-NZ', pkg: 'first-package' }, (error, data) => {
+        assume(error).is.falsey();
+        assume(data).is.truthy();
+        assume(data).deep.equals({ foo: 1 });
+
+        done();
+      });
+    });
+
   });
 
   describe('.heads', function () {
