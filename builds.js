@@ -288,7 +288,7 @@ class Builds {
   /**
    * Cancel specified build.
    *
-   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
+   * @param {Object} params Parameters that specify pkg, env,  and/or version
    * @param {Function} fn Completion callback.
    * @returns {Warehouse} fluent interface.
    * @public
@@ -296,7 +296,7 @@ class Builds {
   cancel(params, fn) {
     const env = params.environment || params.env || 'dev';
     const version = params.v || params.version;
-    const pkg = params.package || version.pkg;
+    const pkg = params.package || params.pkg;
 
     debug('Cancelling builds for: pkg = %s, env = %s, version = %s', pkg, env, version);
     return this.warehouse.send(

@@ -16,9 +16,6 @@ describe('Builds', function () {
   beforeEach(function () {
     builds = null;
     sandbox = sinon.sandbox.create();
-    sendStub = sandbox.stub(wrhs, 'send')
-      .callsArgWithAsync(2, null, buildData)
-      .returns(wrhs);
   });
 
   afterEach(function () {
@@ -29,7 +26,33 @@ describe('Builds', function () {
     }
   });
 
+  it('should have a get function', function () {
+    builds = new Builds();
+    assume(builds.get).is.a('function');
+  });
+
+  it('should have a heads function', function () {
+    builds = new Builds();
+    assume(builds.heads).is.a('function');
+  });
+
+  it('should have a meta function', function () {
+    builds = new Builds();
+    assume(builds.meta).is.a('function');
+  });
+
+  it('should have a cancel function', function () {
+    builds = new Builds();
+    assume(builds.cancel).is.a('function');
+  });
+
   describe('.get', function () {
+    beforeEach(function () {
+      sendStub = sandbox.stub(wrhs, 'send')
+        .callsArgWithAsync(2, null, buildData)
+        .returns(wrhs);
+    });
+
     it('returns error when no pkg specified', function (done) {
       builds = new Builds();
       builds.get({ pkg: null }, error => {
@@ -130,97 +153,247 @@ describe('Builds', function () {
         });
       });
     });
+
+    describe('build cache', function () {
+      it('caches data on .get', function (done) {
+        builds = new Builds(wrhs, { buildCache: { enabled: true }});
+        assume(builds.cache).is.truthy();
+        assume(builds.cache.size).equals(0);
+
+        builds.get({ pkg: 'some-pkg' }, (error, data) => {
+          assume(error).is.falsey();
+          assume(data).equals(buildData);
+          assume(sendStub).is.called(1);
+          assume(builds.cache).is.truthy();
+          assume(builds.cache.size).equals(1);
+          done();
+        });
+      });
+
+      it('refreshing the cache calls warehouse for each cache entry', function (done) {
+        builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+        /* eslint-disable no-undefined */
+        const paramsA = {
+          type: 'builds',
+          env: 'dev',
+          version: undefined,
+          meta: undefined,
+          locale: 'en-NZ',
+          pkg: 'first-package'
+        };
+        const cacheKeyA = builds._getHashKey(paramsA);
+        builds.cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
+
+        const paramsB = {
+          type: 'builds',
+          env: 'test',
+          version: '3.2.1',
+          meta: undefined,
+          locale: 'fr-FR',
+          pkg: 'second-package'
+        };
+        const cacheKeyB = builds._getHashKey(paramsB);
+        builds.cache.set(cacheKeyB, Object.assign({}, paramsB, { data: { bar: 2 }}));
+        assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
+        assume(builds.cache.get(cacheKeyB).data).does.not.equals(buildData);
+        /* eslint-enable no-undefined */
+
+        builds._refreshCache();
+
+        setTimeout(() => {
+          assume(sendStub).is.called(2);
+          assume(sendStub.firstCall).is.calledWithMatch(
+            'builds/first-package/dev',
+            { query: { locale: 'en-NZ' }});
+          assume(sendStub.secondCall).is.calledWithMatch(
+            'builds/second-package/test/3.2.1',
+            { query: { locale: 'fr-FR' }});
+
+          assume(builds.cache.get(cacheKeyA).data).equals(buildData);
+          assume(builds.cache.get(cacheKeyB).data).equals(buildData);
+          done();
+        }, 1);
+      });
+
+      it('failing to refresh the cache leaves old cache in place', function (done) {
+        builds = new Builds(wrhs, { buildCache: { enabled: true }});
+        sendStub.restore();
+        sendStub = sandbox.stub(wrhs, 'send')
+          .callsArgWithAsync(2, new Error('This is an error.'))
+          .returns(wrhs);
+
+        /* eslint-disable no-undefined */
+        const paramsA = {
+          type: 'builds',
+          env: 'dev',
+          version: undefined,
+          meta: undefined,
+          locale: 'en-NZ',
+          pkg: 'first-package'
+        };
+        const cacheKeyA = builds._getHashKey(paramsA);
+        builds.cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
+        assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
+        assume(builds.cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
+        /* eslint-enable no-undefined */
+
+        builds._refreshCache();
+
+        setTimeout(() => {
+          assume(sendStub).is.called(1);
+          assume(sendStub.firstCall).is.calledWithMatch(
+            'builds/first-package/dev',
+            { query: { locale: 'en-NZ' }});
+
+          assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
+          assume(builds.cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
+          done();
+        }, 1);
+      });
+
+      it('prevents re-entrancy into refresh', function (done) {
+        builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+        builds.cache.set('a', { pkg: 'first-pkg', locale: 'en-NZ' });
+        builds.cache.set('b', { pkg: 'second-pkg', locale: 'en-NZ' });
+
+        builds._refreshCache();
+        builds._refreshCache();
+
+        setTimeout(() => {
+          assume(sendStub).is.called(2);
+          done();
+        }, 1);
+      });
+
+      it('refreshing empty cache doesn\'t throw', function (done) {
+        builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+        builds._refreshCache();
+
+        setTimeout(() => {
+          assume(sendStub.called).is.false();
+          done();
+        }, 1);
+      });
+
+      it('refreshing when cache disabled doesn\'t throw', function () {
+        builds = new Builds(wrhs, { buildCache: { enabled: false }});
+        assume(builds.cache).does.not.exist();
+        assume(() => builds._refreshCache()).does.not.throw();
+      });
+
+      it('the cache can be cleared', function () {
+        builds = new Builds(wrhs, { buildCache: { enabled: true }});
+        builds.cache.set('a', 'b');
+        assume(builds.cache.size).equals(1);
+        builds.clearCache();
+        assume(builds.cache.size).equals(0);
+      });
+
+      it('clearing the cache when cache disabled doesn\'t throw', function () {
+        builds = new Builds(wrhs, { buildCache: { enabled: false }});
+        assume(builds.cache).does.not.exist();
+        assume(() => builds.clearCache()).does.not.throw();
+      });
+    });
   });
 
-  describe('cache', function () {
+  describe('.heads', function () {
+    beforeEach(function () {
+      builds = new Builds(wrhs);
+      sendStub = sandbox.stub(wrhs, 'send')
+        .callsArgWithAsync(2, null, buildData)
+        .returns(wrhs);
+    });
 
-    it('caches data on .get', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
-      assume(builds.cache).is.truthy();
-      assume(builds.cache.size).equals(0);
-
-      builds.get({ pkg: 'some-pkg' }, (error, data) => {
-        assume(error).is.falsey();
-        assume(data).equals(buildData);
-        assume(sendStub).is.called(1);
-        assume(builds.cache).is.truthy();
-        assume(builds.cache.size).equals(1);
+    it('returns an error when no package specified', function (done) {
+      builds.heads({ pkg: null, env: 'prod' }, error => {
+        assume(error).is.truthy();
+        assume(error.message).contains('Invalid parameters supplied, missing `pkg`');
         done();
       });
     });
 
-    it('refreshing the cache calls warehouse for each cache entry', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-      /* eslint-disable no-undefined */
-      const paramsA = {
-        type: 'builds',
-        env: 'dev',
-        version: undefined,
-        meta: undefined,
-        locale: 'en-NZ',
-        pkg: 'first-package'
-      };
-      const cacheKeyA = builds._getHashKey(paramsA);
-      builds.cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
-
-      const paramsB = {
-        type: 'builds',
-        env: 'test',
-        version: '3.2.1',
-        meta: undefined,
-        locale: 'fr-FR',
-        pkg: 'second-package'
-      };
-      const cacheKeyB = builds._getHashKey(paramsB);
-      builds.cache.set(cacheKeyB, Object.assign({}, paramsB, { data: { bar: 2 }}));
-      assume(builds.cache.get(cacheKeyA).data).does.not.equals(buildData);
-      assume(builds.cache.get(cacheKeyB).data).does.not.equals(buildData);
-      /* eslint-enable no-undefined */
-
-      builds._refreshCache();
-
-      setTimeout(() => {
-        assume(sendStub).is.called(2);
-        assume(sendStub.firstCall).is.calledWithMatch(
-          'builds/first-package/dev',
-          { query: { locale: 'en-NZ' }});
-        assume(sendStub.secondCall).is.calledWithMatch(
-          'builds/second-package/test/3.2.1',
-          { query: { locale: 'fr-FR' }});
-
-        assume(builds.cache.get(cacheKeyA).data).equals(buildData);
-        assume(builds.cache.get(cacheKeyB).data).equals(buildData);
+    it('sends request for package and environment', function (done) {
+      builds.heads({ pkg: 'some-pkg', env: 'prod' }, (error, data) => {
+        assume(error).is.falsey();
+        assume(data).equals(buildData);
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/-/head',
+          { query: { env: 'prod', name: 'some-pkg' }});
         done();
-      }, 1);
+      });
     });
 
-    it('prevents re-entrancy into refresh', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-      builds.cache.set('a', { pkg: 'first-pkg', locale: 'en-NZ' });
-      builds.cache.set('b', { pkg: 'second-pkg', locale: 'en-NZ' });
-
-      builds._refreshCache();
-      builds._refreshCache();
-
-      setTimeout(() => {
-        assume(sendStub).is.called(2);
+    it('provided default environment', function (done) {
+      builds.heads({ pkg: 'another-pkg' }, (error, data) => {
+        assume(error).is.falsey();
+        assume(data).equals(buildData);
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/-/head',
+          { query: { env: 'dev', name: 'another-pkg' }});
         done();
-      }, 1);
+      });
     });
 
-    it('refreshing empty cache doesn\'t throw', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+  });
 
-      builds._refreshCache();
+  describe('.meta', function () {
+    let buildStub;
 
-      setTimeout(() => {
-        assume(sendStub.called).is.false();
-        done();
-      }, 1);
+    beforeEach(function () {
+      builds = new Builds(wrhs);
+      buildStub = sandbox.stub(builds, 'get')
+        .callsArgWithAsync(1, null, buildData)
+        .returns(wrhs);
     });
 
+    it('calls through setting meta', function (done) {
+      builds.meta({ pkg: 'some-pig' }, error => {
+        assume(error).is.falsey();
+        assume(buildStub).is.called(1);
+        assume(buildStub).is.calledWithMatch({ pkg: 'some-pig', meta: false });
+        done();
+      });
+    });
+
+    it('allows for meta: true', function (done) {
+      builds.meta({ pkg: 'some-pig', meta: true }, error => {
+        assume(error).is.falsey();
+        assume(buildStub).is.called(1);
+        assume(buildStub).is.calledWithMatch({ pkg: 'some-pig', meta: true });
+        done();
+      });
+    });
+  });
+
+  describe('.cancel', function () {
+    beforeEach(function () {
+      builds = new Builds(wrhs);
+      sendStub = sandbox.stub(wrhs, 'send')
+        .callsArgWithAsync(1, null, buildData)
+        .returns(wrhs);
+    });
+
+    it('calls wrhs to cancel a build', function (done) {
+      builds.cancel({ env: 'prod', version: '7.8.9', pkg: 'package-to-cancel' }, error => {
+        assume(error).is.falsey();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/cancel/package-to-cancel/7.8.9/prod');
+        done();
+      });
+    });
+
+    it('provide defaults', function (done) {
+      builds.cancel({ pkg: 'package-to-cancel' }, error => {
+        assume(error).is.falsey();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/cancel/package-to-cancel/dev');
+        done();
+      });
+    });
   });
 });
 /* eslint-enable max-nested-callbacks */

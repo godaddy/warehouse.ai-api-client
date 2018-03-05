@@ -17,22 +17,4 @@ describe('warehousei.ai-api-client.tests', function () {
   it('should have a builds prototype attached', function () {
     assume(wrhs.builds).is.instanceof(Warehouse.Builds);
   });
-
-  describe('.builds', function () {
-    it('should have a get function', function () {
-      assume(wrhs.builds.get).is.a('function');
-    });
-
-    it('should have a heads function', function () {
-      assume(wrhs.builds.heads).is.a('function');
-    });
-
-    it('should have a meta function', function () {
-      assume(wrhs.builds.meta).is.a('function');
-    });
-
-    it('should have a cancel function', function () {
-      assume(wrhs.builds.cancel).is.a('function');
-    });
-  });
 });
