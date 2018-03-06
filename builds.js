@@ -31,12 +31,13 @@ class Builds {
    * False if you want to hit the service every time
    * @param {number} [options.buildCache.refreshLimit] How many cache entries can be refreshed at once
    * @param {number} [options.buildCache.refreshInterval] An interval in ms on which the cache should be refreshed.
-   * If the refresh takes longer than the interval, intervals will be skipped.
+   * If the refresh takes longer than the interval, intervals will be skipped. A non-positive number results in the
+   * cache _never_ being refreshed
    * @public
    */
   constructor(warehouse, options) {
     this.warehouse = warehouse;
-    this.refreshInterval = null;
+    this._cacheRefreshIntervalId = null;
 
     options = options || {};
     if (options.buildCache && options.buildCache.enabled) {
@@ -58,7 +59,9 @@ class Builds {
        * @member {number} _cacheRefreshInterval The interval in ms on which the cache is refreshed refreshed
        * @private
        */
-      this._cacheRefreshInterval = options.buildCache.refreshInterval || defaultCacheRefreshInterval;
+      this._cacheRefreshInterval = (options.buildCache.refreshInterval || options.buildCache.refreshInterval === 0) ?
+        options.buildCache.refreshInterval :
+        defaultCacheRefreshInterval;
       this.resumeCacheRefresh();
     }
   }
@@ -80,8 +83,8 @@ class Builds {
    * @public
    */
   resumeCacheRefresh() {
-    if (this._refreshInterval !== null) {
-      this._refreshInterval = setInterval(
+    if (this._cacheRefreshIntervalId === null && this._cacheRefreshInterval > 0) {
+      this._cacheRefreshIntervalId = setInterval(
         this._refreshCache,
         this._cacheRefreshInterval);
     }
@@ -95,9 +98,9 @@ class Builds {
    * @public
    */
   stopCacheRefresh() {
-    if (this._refreshInterval !== null) {
-      clearInterval(this._refreshInterval);
-      this._refreshInterval = null;
+    if (this._cacheRefreshIntervalId !== null) {
+      clearInterval(this._cacheRefreshIntervalId);
+      this._cacheRefreshIntervalId = null;
     }
   }
 

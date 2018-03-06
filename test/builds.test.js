@@ -154,6 +154,23 @@ describe('Builds', function () {
       });
     });
 
+    it('fetches data from warehouse when cache is enabled, parameters are the same, but bypassCache specified', function (done) {
+      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+
+      builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
+        assume(error1).is.falsey();
+        assume(data1).equals(buildData);
+        assume(sendStub).is.called(1);
+
+        builds.get({ pkg: 'some-pkg', bypassCache: true }, (error2, data2) => {
+          assume(error2).is.falsey();
+          assume(data2).equals(buildData);
+          assume(sendStub).is.called(2);
+          done();
+        });
+      });
+    });
+
     describe('build cache', function () {
       it('caches data on .get', function (done) {
         builds = new Builds(wrhs, { buildCache: { enabled: true }});
@@ -296,6 +313,21 @@ describe('Builds', function () {
         builds = new Builds(wrhs, { buildCache: { enabled: false }});
         assume(builds._cache).does.not.exist();
         assume(() => builds.clearCache()).does.not.throw();
+      });
+
+      it('refreshInterval>0 results in cache refresh', function () {
+        builds = new Builds(wrhs, { buildCache: { enabled: true, refreshInterval: 1 }});
+        assume(builds._cacheRefreshIntervalId).is.not.null();
+      });
+
+      it('refreshInterval===0 results in no cache refresh', function () {
+        builds = new Builds(wrhs, { buildCache: { enabled: true, refreshInterval: 0 }});
+        assume(builds._cacheRefreshIntervalId).is.null();
+      });
+
+      it('refreshInterval<0 results in no cache refresh', function () {
+        builds = new Builds(wrhs, { buildCache: { enabled: true, refreshInterval: -1 }});
+        assume(builds._cacheRefreshIntervalId).is.null();
       });
     });
   });
