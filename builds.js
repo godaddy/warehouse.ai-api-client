@@ -29,7 +29,7 @@ class Builds {
    * @param {Object} [options.buildCache] An options object for caching build information
    * @param {boolean} [options.buildCache.enabled] True if you want to use a cache of build information,
    * False if you want to hit the service every time
-   * @param {number} [options.buildCache.refreshLimit] How many cache entries can be refreshed at once
+   * @param {number} [options.buildCache.refreshLimit] The number of cache entries that can be refreshed simultaneously.
    * @param {number} [options.buildCache.refreshInterval] An interval in ms on which the cache should be refreshed.
    * If the refresh takes longer than the interval, intervals will be skipped. A non-positive number results in the
    * cache _never_ being refreshed
@@ -90,8 +90,6 @@ class Builds {
     }
   }
 
-
-
   /**
    * Allows you to stop the process of refreshing the build cache
    *
@@ -121,7 +119,6 @@ class Builds {
 
     this._cacheRefreshing = true;
 
-    // TODO: leave the cache alone, go fetch new data and replace.
     async.eachLimit(this._cache.values(), this._cacheRefreshLimit, (build, next) => {
       this._get(build, error => {
         if (error) {
@@ -294,9 +291,9 @@ class Builds {
     const env = environments.get(params.environment || params.env) || 'dev';
     const name = params.package || params.pkg;
 
-    if (!name || !env) {
+    if (!name) {
       return fn(
-        new Error('Invalid parameters supplied, missing `pkg` or `env`')
+        new Error('Invalid parameters supplied, missing `pkg`')
       );
     }
 
@@ -322,29 +319,7 @@ class Builds {
     params.meta = !!params.meta || false;
     return this.get(params, fn);
   }
-
-  /**
-   * Cancel specified build.
-   *
-   * @param {Object} params Parameters that specify pkg, env,  and/or version
-   * @param {Function} fn Completion callback.
-   * @returns {Warehouse} fluent interface.
-   * @public
-   */
-  cancel(params, fn) {
-    const env = params.environment || params.env || 'dev';
-    const version = params.v || params.version;
-    const pkg = params.package || params.pkg;
-
-    debug('Cancelling builds for: pkg = %s, env = %s, version = %s', pkg, env, version);
-    return this.warehouse.send(
-      ['builds', 'cancel'].concat(pkg, version, env).filter(Boolean).join('/'),
-      fn
-    );
-  }
-
 }
-
 
 //
 // Expose the Build API.

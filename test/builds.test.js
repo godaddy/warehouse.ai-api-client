@@ -41,11 +41,6 @@ describe('Builds', function () {
     assume(builds.meta).is.a('function');
   });
 
-  it('should have a cancel function', function () {
-    builds = new Builds();
-    assume(builds.cancel).is.a('function');
-  });
-
   describe('.get', function () {
     beforeEach(function () {
       sendStub = sandbox.stub(wrhs, 'send')
@@ -84,6 +79,18 @@ describe('Builds', function () {
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/some-pkg/dev',
           { query: { locale: 'en-US' }});
+        done();
+      });
+    });
+
+    it('supports scoped packages', function (done) {
+      builds = new Builds(wrhs);
+
+      builds.get({ pkg: '@some-scope/some-pkg' }, (error, data) => {
+        assume(error).is.falsey();
+        assume(data).equals(buildData);
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/%40some-scope%2Fsome-pkg/dev');
         done();
       });
     });
@@ -430,7 +437,6 @@ describe('Builds', function () {
         done();
       });
     });
-
   });
 
   describe('.meta', function () {
@@ -457,33 +463,6 @@ describe('Builds', function () {
         assume(error).is.falsey();
         assume(buildStub).is.called(1);
         assume(buildStub).is.calledWithMatch({ pkg: 'some-pig', meta: true });
-        done();
-      });
-    });
-  });
-
-  describe('.cancel', function () {
-    beforeEach(function () {
-      builds = new Builds(wrhs);
-      sendStub = sandbox.stub(wrhs, 'send')
-        .callsArgWithAsync(1, null, buildData)
-        .returns(wrhs);
-    });
-
-    it('calls wrhs to cancel a build', function (done) {
-      builds.cancel({ env: 'prod', version: '7.8.9', pkg: 'package-to-cancel' }, error => {
-        assume(error).is.falsey();
-        assume(sendStub).is.called(1);
-        assume(sendStub).is.calledWithMatch('builds/cancel/package-to-cancel/7.8.9/prod');
-        done();
-      });
-    });
-
-    it('provide defaults', function (done) {
-      builds.cancel({ pkg: 'package-to-cancel' }, error => {
-        assume(error).is.falsey();
-        assume(sendStub).is.called(1);
-        assume(sendStub).is.calledWithMatch('builds/cancel/package-to-cancel/dev');
         done();
       });
     });
