@@ -1,5 +1,3 @@
-const crypto = require('crypto');
-const async = require('async');
 const Cache = require('./cache');
 
 const debug = require('diagnostics')('warehouse:builds');
@@ -52,7 +50,8 @@ class Builds {
    * Parses the parameters for get calls, normalizing into known names and applying the proper defaults & encodings
    *
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
-   * @returns {Object} The params parsed into `{ env, version, meta, locale, pkg }` with default values applied and `pkg` uri encoded
+   * @returns {Object} The params parsed into `{ env, version, meta, locale, pkg }` with default values applied
+   * and `pkg` uri encoded
    * @private
    */
   _readParams(params) {

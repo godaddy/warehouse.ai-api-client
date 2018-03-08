@@ -2,8 +2,8 @@ const crypto = require('crypto');
 const async = require('async');
 
 const debug = require('diagnostics')('warehouse:cache');
-const defaultOptions = { refresh: {} };
-const defaultRefresh = {
+const defaultOptions = { refresh: {}};
+const defaultRefreshOptions = {
   interval: 20 * 60 * 60 * 1000,
   intervalId: null,
   limit: 10
@@ -11,7 +11,7 @@ const defaultRefresh = {
 
 /**
  * Cache API for warehouse, used for `Builds.get`
- * 
+ *
  * @class Cache
  */
 class Cache {
@@ -19,7 +19,8 @@ class Cache {
    * Constructor for the cache object
    *
    * @constructor
-   * @param {Function} getData Function that accepts the params from a cache entry and a callback that will return a refreshed entry for the cache.
+   * @param {Function} getData Function that accepts the params from a cache entry and a callback that
+   * will return a refreshed entry for the cache.
    * This will end up being called when a cache entry is refreshed
    * @param {Object} [options] Options object for the cache
    * @param {Object} [options.refresh] Options object for information about refreshing the cache
@@ -30,7 +31,7 @@ class Cache {
   constructor(getData, options) {
     this._getData = getData;
     options = Object.assign({}, defaultOptions, options);
-    this._refresh = Object.assign({}, refreshDefaults, options.refresh);
+    this._refresh = Object.assign({}, defaultRefreshOptions, options.refresh);
     this._refreshCache = this._refreshCache.bind(this);
 
     /**
@@ -97,7 +98,7 @@ class Cache {
     async.eachLimit(this._cache.values(), this._refresh.limit, (build, next) => {
       this._refreshOne(build.params, (error, data) => {
         if (error) {
-          debug('Error refreshing cache for: %s', params);
+          debug('Error refreshing cache for: %s', build.params);
           // Swallow cache refresh error, continue serving up the stale data as its better than nothing
           next();
           return;
@@ -106,7 +107,7 @@ class Cache {
         this.set(build.params, data);
         next();
       });
-    }, error => {
+    }, () => {
       this._refreshing = false;
     });
   }
