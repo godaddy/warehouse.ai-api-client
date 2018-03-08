@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const async = require('async');
+const Cache = require('./cache');
 
 const debug = require('diagnostics')('warehouse:builds');
 const environments = new Map([
@@ -12,8 +13,10 @@ const environments = new Map([
   ['dist', 'prod'],
   ['prod', 'prod']
 ]);
-const defaultCacheRefreshInterval = 20 * 60 * 60 * 1000;
-const defaultCacheRefreshLimit = 10;
+
+const defaultOptions = {
+  cache: {}
+};
 
 /**
  * Build interface for the Warehouse API.
@@ -24,12 +27,13 @@ class Builds {
   /**
    * @constructor
    * @param {Warehouse} warehouse Reference to the Warehouse instance.
-   * @param {Object} [options] Warehouse options object
-   * @param {Object} [options.buildCache] An options object for caching build information
-   * @param {boolean} [options.buildCache.enabled] True if you want to use a cache of build information,
+   * @param {Object} [options] Builds options object
+   * @param {Object} [options.cache] An options object for caching build information
+   * @param {boolean} [options.cache.enabled] True if you want to use a cache of build information,
    * False if you want to hit the service every time
-   * @param {number} [options.buildCache.refreshLimit] The number of cache entries that can be refreshed simultaneously.
-   * @param {number} [options.buildCache.refreshInterval] An interval in ms on which the cache should be refreshed.
+   * @param {Object} [options.cache.refresh] Options object for storing information about how to refresh the cache
+   * @param {number} [options.cache.refresh.limit] The number of cache entries that can be refreshed simultaneously.
+   * @param {number} [options.cache.refresh.interval] An interval in ms on which the cache should be refreshed.
    * If the refresh takes longer than the interval, intervals will be skipped. A non-positive number results in the
    * cache _never_ being refreshed
    * @public
@@ -38,116 +42,14 @@ class Builds {
     this.warehouse = warehouse;
     this._cacheRefreshIntervalId = null;
 
-    options = options || {};
-    if (options.buildCache && options.buildCache.enabled) {
-      this._refreshCache = this._refreshCache.bind(this);
-
-      /**
-       * @member {Map} cache The build cache
-       * @private
-       */
-      this._cache = new Map();
-
-      /**
-       * @member {number} _cacheRefreshLimit The number of cache entries that can be simultaneously refreshed
-       * @private
-       */
-      this._cacheRefreshLimit = options.buildCache.refreshLimit || defaultCacheRefreshLimit;
-
-      /**
-       * @member {number} _cacheRefreshInterval The interval in ms on which the cache is refreshed refreshed
-       * @private
-       */
-      this._cacheRefreshInterval = (options.buildCache.refreshInterval || options.buildCache.refreshInterval === 0) ?
-        options.buildCache.refreshInterval :
-        defaultCacheRefreshInterval;
-      this.resumeCacheRefresh();
+    options = Object.assign({}, defaultOptions, options);
+    if (options.cache && options.cache.enabled) {
+      this.cache = new Builds.Cache(this._get.bind(this), options.cache);
     }
   }
 
   /**
-   * Clears the build cache if one exists
-   *
-   * @public
-   */
-  clearCache() {
-    if (this._cache) {
-      this._cache.clear();
-    }
-  }
-
-  /**
-   * Allows you to resume the process of refreshing the build cache
-   *
-   * @public
-   */
-  resumeCacheRefresh() {
-    if (this._cacheRefreshIntervalId === null && this._cacheRefreshInterval > 0) {
-      this._cacheRefreshIntervalId = setInterval(
-        this._refreshCache,
-        this._cacheRefreshInterval);
-    }
-  }
-
-  /**
-   * Allows you to stop the process of refreshing the build cache
-   *
-   * @public
-   */
-  stopCacheRefresh() {
-    if (this._cacheRefreshIntervalId !== null) {
-      clearInterval(this._cacheRefreshIntervalId);
-      this._cacheRefreshIntervalId = null;
-    }
-  }
-
-  /**
-   * Refreshes the build cache.
-   *
-   * @private
-   */
-  _refreshCache() {
-    if (!this._cache) {
-      return;
-    }
-
-    if (this._cacheRefreshing) {
-      debug('Skipping a build cache refresh interval, previous interval took too long.');
-      return;
-    }
-
-    this._cacheRefreshing = true;
-
-    async.eachLimit(this._cache.values(), this._cacheRefreshLimit, (build, next) => {
-      this._get(build, error => {
-        if (error) {
-          const { pkg, env, version } = build;
-          debug('Error refreshing cache for: pkg = %s, env = %s, version = %s', pkg, env, version);
-          // Swallow cache refresh error, continue serving up the stale data as its better than nothing
-        }
-        next(null);
-      });
-    }, error => {
-      this._cacheRefreshing = false;
-    });
-  }
-
-  /**
-   * Generate md5 hash to be used as caching key.
-   *
-   * @param {Object} options Properties to generate key from.
-   * @returns {string} Unique identifier.
-   * @private
-   */
-  _getHashKey(options) {
-    return crypto
-      .createHash('md5')
-      .update(JSON.stringify(options))
-      .digest('hex');
-  }
-
-  /**
-   * Parses the parameters for get & get-related calls, normalizing into known names and applying the proper defaults & encodings
+   * Parses the parameters for get calls, normalizing into known names and applying the proper defaults & encodings
    *
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
    * @returns {Object} The params parsed into `{ env, version, meta, locale, pkg }` with default values applied and `pkg` uri encoded
@@ -169,43 +71,6 @@ class Builds {
   }
 
   /**
-   * Provides a way to read directly from the build cache
-   *
-   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
-   * @param {Function} fn Completion callback.
-   * @returns {Warehouse} fluent interface.
-   * @public
-   */
-  getFromCache(params, fn) {
-    if (!this._cache) {
-      return fn(
-        new Error('BuildCache must be enabled to use getFromCache')
-      );
-    }
-
-    const { env, version, meta, locale, pkg } = this._readParams(params);
-
-    if (!pkg) {
-      return fn(
-        new Error('invalid parameters supplied, missing `pkg`')
-      );
-    }
-
-    const cacheKey = this._getHashKey({
-      type: 'builds',
-      env,
-      version,
-      meta,
-      locale,
-      pkg
-    });
-
-    const build = this._cache.get(cacheKey);
-    fn(null, build && build.data || null);
-    return this.warehouse;
-  }
-
-  /**
    * Get build information. Build information may be read from the cache if configured.
    *
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
@@ -217,30 +82,40 @@ class Builds {
     const { env, version, meta, locale, pkg } = this._readParams(params);
 
     if (!pkg) {
-      return fn(
-        new Error('invalid parameters supplied, missing `pkg`')
-      );
+      return fn(new Error('invalid parameters supplied, missing `pkg`'));
     }
 
-    if (this._cache && !params.bypassCache) {
-      const cacheKey = this._getHashKey({
-        type: 'builds',
-        env,
-        version,
-        meta,
-        locale,
-        pkg
-      });
+    const cacheKey = {
+      type: 'builds',
+      env,
+      version,
+      meta,
+      locale,
+      pkg
+    };
 
-      const build = this._cache.get(cacheKey);
-      if (build) {
+    if (this.cache && !params.bypassCache) {
+      const data = this.cache.get(cacheKey);
+      if (data) {
         debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
-        fn(null, build.data);
+        fn(null, data);
         return this.warehouse;
       }
     }
 
-    return this._get({ pkg, env, version, meta, locale }, fn);
+    return this._get({ pkg, env, version, meta, locale }, (err, data) => {
+      if (err) {
+        fn(err);
+        return;
+      }
+
+      if (this.cache) {
+        debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
+        this.cache.set(cacheKey, data);
+      }
+
+      fn(null, data);
+    });
   }
 
   /**
@@ -261,34 +136,7 @@ class Builds {
     return this.warehouse.send(
       ['builds'].concat(pkg, env, version, meta).filter(Boolean).join('/'),
       { query: { locale }},
-      (err, data) => {
-        if (err) {
-          fn(err);
-          return;
-        }
-
-        if (this._cache) {
-          debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
-          const cacheKey = this._getHashKey({
-            type: 'builds',
-            env,
-            version,
-            meta,
-            locale,
-            pkg
-          });
-          this._cache.set(cacheKey, {
-            pkg,
-            env,
-            version,
-            meta,
-            locale,
-            data
-          });
-        }
-
-        fn(null, data);
-      }
+      fn
     );
   }
 
@@ -333,6 +181,8 @@ class Builds {
     return this.get(params, fn);
   }
 }
+
+Builds.Cache = Cache;
 
 //
 // Expose the Build API.
