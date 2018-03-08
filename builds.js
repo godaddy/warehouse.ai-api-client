@@ -1,4 +1,3 @@
-const { clearInterval, setInterval } = require('timers');
 const crypto = require('crypto');
 const async = require('async');
 
@@ -130,7 +129,6 @@ class Builds {
       });
     }, error => {
       this._cacheRefreshing = false;
-      debug('Error refreshing cache: %s', error);
     });
   }
 
@@ -148,6 +146,13 @@ class Builds {
       .digest('hex');
   }
 
+  /**
+   * Parses the parameters for get & get-related calls, normalizing into known names and applying the proper defaults & encodings
+   *
+   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
+   * @returns {Object} The params parsed into `{ env, version, meta, locale, pkg }` with default values applied and `pkg` uri encoded
+   * @private
+   */
   _readParams(params) {
     const env = environments.get(params.environment || params.env) || 'dev';
     const version = params.v || params.version;
@@ -163,6 +168,14 @@ class Builds {
     return { env, version, meta, locale, pkg };
   }
 
+  /**
+   * Provides a way to read directly from the build cache
+   *
+   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
+   * @param {Function} fn Completion callback.
+   * @returns {Warehouse} fluent interface.
+   * @public
+   */
   getFromCache(params, fn) {
     if (!this._cache) {
       return fn(
@@ -250,7 +263,7 @@ class Builds {
       { query: { locale }},
       (err, data) => {
         if (err) {
-          fn(err, data);
+          fn(err);
           return;
         }
 
@@ -274,7 +287,7 @@ class Builds {
           });
         }
 
-        fn(err, data);
+        fn(null, data);
       }
     );
   }
