@@ -4,8 +4,9 @@
   "version": "2.2.1",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/*.test.js",
-    "lint": "eslint-godaddy --fix *.js lib/*.js",
+    "test:mocha": "mocha test/*.test.js",
+    "test": "nyc --reporter=text --reporter=json-summary npm run test:mocha",
+    "lint": "eslint-godaddy --fix *.js lib/*.js test/*.js",
     "pretest": "npm run lint"
   },
   "repository": {
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "assume": "^1.4.x",
+    "assume-sinon": "^1.0.0",
     "babel-eslint": "^6.1.2",
     "clone": "^2.1.1",
     "eslint": "^3.5.0",
@@ -41,6 +43,7 @@
     "eslint-plugin-react": "^4.1.0",
     "jscs-jsx-rules": "0.0.1",
     "mocha": "^5.0.0",
+    "nyc": "^11.4.1",
     "sinon": "^4.3.0"
   }
 }

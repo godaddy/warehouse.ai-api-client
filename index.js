@@ -16,7 +16,7 @@ const Verify = require('./verify');
  *
  * @constructor
  * @param {Object} options Object with options.
- * @api public
+ * @public
  */
 function Warehouse(options) {
   debug('Creating instance of API');
@@ -48,7 +48,7 @@ function Warehouse(options) {
   //
   // Special subscriber API to manage subscription lists.
   //
-  this.builds = new Builds(this);
+  this.builds = new Builds(this, options.cache);
   this.verifier = new Verify(this);
 }
 
@@ -58,7 +58,7 @@ function Warehouse(options) {
  * @param {Object} params - Options for publish
  * @param {Function} fn - Continutation function to call
  * @returns {Warehouse} instance of Warehouse
- * @api public
+ * @public
  */
 Warehouse.prototype.publish = function publish(params, fn) {
   const name = params.name || params.pkg;
@@ -77,7 +77,7 @@ Warehouse.prototype.publish = function publish(params, fn) {
  * @param {Object} opts - Options for verify { pkg, env, dry, conc, numFiles }
  * @param {Function} fn - Continuation to call when complete
  * @returns {Warehouse} instance of Warehouse
- * @api public
+ * @public
  */
 Warehouse.prototype.verify = function v(opts, fn) {
   this.verifier.execute(opts, fn);
@@ -98,7 +98,7 @@ Warehouse.prototype.verify = function v(opts, fn) {
  * @param {Object} options Request configuration.
  * @param {Function} next Completion callback.
  * @returns {Warehouse} fluent interface
- * @api public
+ * @public
  */
 Warehouse.prototype.send = function send(pathname, options, next) {
   if (typeof options === 'function') {
@@ -152,7 +152,7 @@ Warehouse.prototype.send = function send(pathname, options, next) {
  * Destroy the warehouse instance.
  *
  * @returns {Boolean}
- * @api public
+ * @public
  */
 Warehouse.prototype.destroy = destroy('send, builds', 'publish', 'verify');
 
