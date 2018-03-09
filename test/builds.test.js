@@ -21,8 +21,8 @@ describe('Builds', function () {
   afterEach(function () {
     sandbox.restore();
     sendStub = null;
-    if (builds) {
-      builds.stopCacheRefresh();
+    if (builds && builds.cache) {
+      builds.cache.stopRefresh();
     }
   });
 
@@ -128,7 +128,7 @@ describe('Builds', function () {
     });
 
     it('fetches data from cache when enabled and parameters are the same', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true }});
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -145,7 +145,7 @@ describe('Builds', function () {
     });
 
     it('fetches data from warehouse when cache is enabled and parameters are the different', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true }});
 
       builds.get({ pkg: 'some-pkg', locale: 'en-NZ' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -162,7 +162,7 @@ describe('Builds', function () {
     });
 
     it('fetches data from warehouse when cache is enabled, parameters are the same, but bypassCache specified', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true }});
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -178,226 +178,21 @@ describe('Builds', function () {
       });
     });
 
-    describe('build cache', function () {
-      it('caches data on .get', function (done) {
-        builds = new Builds(wrhs, { buildCache: { enabled: true }});
-        assume(builds._cache).is.truthy();
-        assume(builds._cache.size).equals(0);
+    it('caches data', function (done) {
+      builds = new Builds(wrhs, { cache: { enabled: true }});
+      assume(builds.cache).is.truthy();
+      assume(builds.cache._cache).is.truthy();
+      assume(builds.cache._cache.size).equals(0);
 
-        builds.get({ pkg: 'some-pkg' }, (error, data) => {
-          assume(error).is.falsey();
-          assume(data).equals(buildData);
-          assume(sendStub).is.called(1);
-          assume(builds._cache).is.truthy();
-          assume(builds._cache.size).equals(1);
-          done();
-        });
-      });
-
-      it('refreshing the cache calls warehouse for each cache entry', function (done) {
-        builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-        /* eslint-disable no-undefined */
-        const paramsA = {
-          type: 'builds',
-          env: 'dev',
-          version: undefined,
-          meta: undefined,
-          locale: 'en-NZ',
-          pkg: 'first-package'
-        };
-        const cacheKeyA = builds._getHashKey(paramsA);
-        builds._cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
-
-        const paramsB = {
-          type: 'builds',
-          env: 'test',
-          version: '3.2.1',
-          meta: undefined,
-          locale: 'fr-FR',
-          pkg: 'second-package'
-        };
-        const cacheKeyB = builds._getHashKey(paramsB);
-        builds._cache.set(cacheKeyB, Object.assign({}, paramsB, { data: { bar: 2 }}));
-        assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
-        assume(builds._cache.get(cacheKeyB).data).does.not.equals(buildData);
-        /* eslint-enable no-undefined */
-
-        builds._refreshCache();
-
-        setTimeout(() => {
-          assume(sendStub).is.called(2);
-          assume(sendStub.firstCall).is.calledWithMatch(
-            'builds/first-package/dev',
-            { query: { locale: 'en-NZ' }});
-          assume(sendStub.secondCall).is.calledWithMatch(
-            'builds/second-package/test/3.2.1',
-            { query: { locale: 'fr-FR' }});
-
-          assume(builds._cache.get(cacheKeyA).data).equals(buildData);
-          assume(builds._cache.get(cacheKeyB).data).equals(buildData);
-          done();
-        }, 1);
-      });
-
-      it('failing to refresh the cache leaves old cache in place', function (done) {
-        builds = new Builds(wrhs, { buildCache: { enabled: true }});
-        sendStub.restore();
-        sendStub = sandbox.stub(wrhs, 'send')
-          .callsArgWithAsync(2, new Error('This is an error.'))
-          .returns(wrhs);
-
-        /* eslint-disable no-undefined */
-        const paramsA = {
-          type: 'builds',
-          env: 'dev',
-          version: undefined,
-          meta: undefined,
-          locale: 'en-NZ',
-          pkg: 'first-package'
-        };
-        const cacheKeyA = builds._getHashKey(paramsA);
-        builds._cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
-        assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
-        assume(builds._cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
-        /* eslint-enable no-undefined */
-
-        builds._refreshCache();
-
-        setTimeout(() => {
-          assume(sendStub).is.called(1);
-          assume(sendStub.firstCall).is.calledWithMatch(
-            'builds/first-package/dev',
-            { query: { locale: 'en-NZ' }});
-
-          assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
-          assume(builds._cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
-          done();
-        }, 1);
-      });
-
-      it('prevents re-entrancy into refresh', function (done) {
-        builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-        builds._cache.set('a', { pkg: 'first-pkg', locale: 'en-NZ' });
-        builds._cache.set('b', { pkg: 'second-pkg', locale: 'en-NZ' });
-
-        builds._refreshCache();
-        builds._refreshCache();
-
-        setTimeout(() => {
-          assume(sendStub).is.called(2);
-          done();
-        }, 1);
-      });
-
-      it('refreshing empty cache doesn\'t throw', function (done) {
-        builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-        builds._refreshCache();
-
-        setTimeout(() => {
-          assume(sendStub.called).is.false();
-          done();
-        }, 1);
-      });
-
-      it('refreshing when cache disabled doesn\'t throw', function () {
-        builds = new Builds(wrhs, { buildCache: { enabled: false }});
-        assume(builds._cache).does.not.exist();
-        assume(() => builds._refreshCache()).does.not.throw();
-      });
-
-      it('the cache can be cleared', function () {
-        builds = new Builds(wrhs, { buildCache: { enabled: true }});
-        builds._cache.set('a', 'b');
-        assume(builds._cache.size).equals(1);
-        builds.clearCache();
-        assume(builds._cache.size).equals(0);
-      });
-
-      it('clearing the cache when cache disabled doesn\'t throw', function () {
-        builds = new Builds(wrhs, { buildCache: { enabled: false }});
-        assume(builds._cache).does.not.exist();
-        assume(() => builds.clearCache()).does.not.throw();
-      });
-
-      it('refreshInterval>0 results in cache refresh', function () {
-        builds = new Builds(wrhs, { buildCache: { enabled: true, refreshInterval: 1 }});
-        assume(builds._cacheRefreshIntervalId).is.not.null();
-      });
-
-      it('refreshInterval===0 results in no cache refresh', function () {
-        builds = new Builds(wrhs, { buildCache: { enabled: true, refreshInterval: 0 }});
-        assume(builds._cacheRefreshIntervalId).is.null();
-      });
-
-      it('refreshInterval<0 results in no cache refresh', function () {
-        builds = new Builds(wrhs, { buildCache: { enabled: true, refreshInterval: -1 }});
-        assume(builds._cacheRefreshIntervalId).is.null();
-      });
-    });
-  });
-
-  describe('.getFromCache', function () {
-    it('yields an error if cache is not enabled', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: false }});
-
-      assume(builds._cache).does.not.exist();
-      builds.getFromCache({ pkg: 'some-pkg' }, error => {
-        assume(error).is.truthy();
-        assume(error.message).contains('BuildCache must be enabled to use getFromCache');
-        done();
-      });
-    });
-
-    it('yields an error if no package specified', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-      builds.getFromCache({ pkg: null }, error => {
-        assume(error).is.truthy();
-        assume(error.message).contains('invalid parameters supplied, missing `pkg`');
-        done();
-      });
-    });
-
-    it('yields falsey when build not in the cache', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-      builds.getFromCache({ pkg: 'some-pkg' }, (error, data) => {
+      builds.get({ pkg: 'some-pkg' }, (error, data) => {
         assume(error).is.falsey();
-        assume(data).is.falsey();
+        assume(data).equals(buildData);
+        assume(sendStub).is.called(1);
+        assume(builds.cache._cache).is.truthy();
+        assume(builds.cache._cache.size).equals(1);
         done();
       });
     });
-
-    it('yields the build when it is cached', function (done) {
-      builds = new Builds(wrhs, { buildCache: { enabled: true }});
-
-      /* eslint-disable no-undefined */
-      const paramsA = {
-        type: 'builds',
-        env: 'dev',
-        version: undefined,
-        meta: null,
-        locale: 'en-NZ',
-        pkg: 'first-package'
-      };
-      const cacheKeyA = builds._getHashKey(paramsA);
-      builds._cache.set(cacheKeyA, Object.assign({}, paramsA, { data: { foo: 1 }}));
-      assume(builds._cache.get(cacheKeyA).data).does.not.equals(buildData);
-      assume(builds._cache.get(cacheKeyA).data).deep.equals({ foo: 1 });
-      /* eslint-enable no-undefined */
-
-      builds.getFromCache({ env: 'dev', locale: 'en-NZ', pkg: 'first-package' }, (error, data) => {
-        assume(error).is.falsey();
-        assume(data).is.truthy();
-        assume(data).deep.equals({ foo: 1 });
-
-        done();
-      });
-    });
-
   });
 
   describe('.heads', function () {

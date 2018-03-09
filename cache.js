@@ -39,7 +39,7 @@ class Cache {
      * @private
      */
     this._cache = new Map();
-    this.resumeCacheRefresh();
+    this.resumeRefresh();
   }
 
   /**
@@ -117,9 +117,9 @@ class Cache {
    *
    * @param {Object} options Properties to generate key from.
    * @returns {string} Unique identifier.
-   * @public
+   * @private
    */
-  getHashKey(options) {
+  _getHashKey(options) {
     return crypto
       .createHash('md5')
       .update(JSON.stringify(options))
@@ -127,13 +127,13 @@ class Cache {
   }
 
   get(params) {
-    const cacheKey = this.getHashKey(params);
+    const cacheKey = this._getHashKey(params);
     const build = this._cache.get(cacheKey);
     return build && build.data || null;
   }
 
   set(params, data) {
-    const cacheKey = this.getHashKey(params);
+    const cacheKey = this._getHashKey(params);
     this._cache.set(cacheKey, { params: params, data: data });
   }
 }
