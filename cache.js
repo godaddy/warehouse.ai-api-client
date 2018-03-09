@@ -19,17 +19,17 @@ class Cache {
    * Constructor for the cache object
    *
    * @constructor
-   * @param {Function} getData Function that accepts the params from a cache entry and a callback that
-   * will return a refreshed entry for the cache.
-   * This will end up being called when a cache entry is refreshed
+   * @param {Function} refreshOne Function that accepts the params from a cache entry and a callback that
+   * will return a refreshed entry for the cache. This will end up being called when a cache entry is
+   * refreshed
    * @param {Object} [options] Options object for the cache
    * @param {Object} [options.refresh] Options object for information about refreshing the cache
    * @param {Number} [options.refresh.interval] How long in ms between cache refreshes
    * @param {Number} [options.refresh.limit] How many items in the cache should be refreshed simultaneously
    * @public
    */
-  constructor(getData, options) {
-    this._getData = getData;
+  constructor(refreshOne, options) {
+    this._refreshOne = refreshOne;
     options = Object.assign({}, defaultOptions, options);
     this._refresh = Object.assign({}, defaultRefreshOptions, options.refresh);
     this._refreshCache = this._refreshCache.bind(this);
@@ -48,10 +48,49 @@ class Cache {
    * @public
    */
   clear() {
-    if (this._cache) {
-      this._cache.clear();
-    }
+    this._cache.clear();
   }
+
+  /**
+   * Generate md5 hash to be used as caching key.
+   *
+   * @param {Object} options Properties to generate key from.
+   * @returns {string} Unique identifier.
+   * @private
+   */
+  _getHashKey(options) {
+    return crypto
+      .createHash('md5')
+      .update(JSON.stringify(options))
+      .digest('hex');
+  }
+
+  /**
+   * Gets a cache entry
+   *
+   * @param {Object} params The parameters for the cache entry that should be retrieved
+   * @returns {*} The data that was stored for the cache entry, if no entry, this will return undefined
+   * @public
+   */
+  get(params) {
+    const cacheKey = this._getHashKey(params);
+    const raw = this._cache.get(cacheKey);
+    return raw && raw.data;
+  }
+
+  /**
+   * Sets a cache entry
+   *
+   * @param {Object} params The parameters for the cache entry that should be stored.  This should
+   * be enough data for a cache entry to be refreshed.
+   * @param {*} data The data for the cache entry
+   * @public
+   */
+  set(params, data) {
+    const cacheKey = this._getHashKey(params);
+    this._cache.set(cacheKey, { params: params, data: data });
+  }
+
 
   /**
    * Allows you to resume the process of refreshing the cache
@@ -81,15 +120,13 @@ class Cache {
   /**
    * Refreshes the build cache.
    *
+   * @param {Function} [fn] An optional callback when refreshing is complete
    * @private
    */
-  _refreshCache() {
-    if (!this._cache) {
-      return;
-    }
-
+  _refreshCache(fn = () => {}) {
     if (this._refreshing) {
       debug('Skipping a build cache refresh interval, previous interval took too long.');
+      fn();
       return;
     }
 
@@ -109,32 +146,8 @@ class Cache {
       });
     }, () => {
       this._refreshing = false;
+      fn();
     });
-  }
-
-  /**
-   * Generate md5 hash to be used as caching key.
-   *
-   * @param {Object} options Properties to generate key from.
-   * @returns {string} Unique identifier.
-   * @private
-   */
-  _getHashKey(options) {
-    return crypto
-      .createHash('md5')
-      .update(JSON.stringify(options))
-      .digest('hex');
-  }
-
-  get(params) {
-    const cacheKey = this._getHashKey(params);
-    const build = this._cache.get(cacheKey);
-    return build && build.data || null;
-  }
-
-  set(params, data) {
-    const cacheKey = this._getHashKey(params);
-    this._cache.set(cacheKey, { params: params, data: data });
   }
 }
 
