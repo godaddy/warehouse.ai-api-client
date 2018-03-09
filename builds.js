@@ -38,7 +38,6 @@ class Builds {
    */
   constructor(warehouse, options) {
     this.warehouse = warehouse;
-    this._cacheRefreshIntervalId = null;
 
     options = Object.assign({}, defaultOptions, options);
     if (options.cache && options.cache.enabled) {
