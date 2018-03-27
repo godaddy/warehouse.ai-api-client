@@ -48,8 +48,8 @@ function Warehouse(options) {
   //
   // Special subscriber API to manage subscription lists.
   //
-  this.builds = new Builds(this, options.cache);
-  this.verifier = new Verify(this);
+  this.builds = new Warehouse.Builds(this, options.builds);
+  this.verifier = new Warehouse.Verify(this);
 }
 
 /**
