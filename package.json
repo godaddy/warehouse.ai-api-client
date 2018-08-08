@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test:mocha": "mocha test/*.test.js",
+    "test:debug": "mocha --inspect-brk test/*.test.js",
     "test": "nyc --reporter=text --reporter=json-summary npm run test:mocha",
     "lint": "eslint-godaddy --fix *.js lib/*.js test/*.js",
     "pretest": "npm run lint"
@@ -27,6 +28,7 @@
     "async": "^2.6.0",
     "demolish": "~1.0.2",
     "diagnostics": "~1.0.1",
+    "out-of-band-cache": "^1.0.0",
     "querystringify": "0.0.3",
     "request": "^2.70.0",
     "retryme": "^1.0.0"
