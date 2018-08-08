@@ -1,4 +1,4 @@
-const Cache = require('./cache');
+const Cache = require('out-of-band-cache');
 
 const debug = require('diagnostics')('warehouse:builds');
 const environments = new Map([
@@ -40,9 +40,8 @@ class Builds {
     this.warehouse = warehouse;
 
     options = Object.assign({}, defaultOptions, options);
-    if (options.cache && options.cache.enabled) {
-      this.cache = new Builds.Cache(this._get.bind(this), options.cache);
-    }
+    this.cache = new Cache({});
+    this.skipCache = options.cache.enabled;
   }
 
   /**
@@ -92,28 +91,24 @@ class Builds {
       pkg
     };
 
-    if (this.cache && !params.bypassCache) {
-      const data = this.cache.get(cacheKey);
-      if (data) {
-        debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
-        fn(null, data);
-        return this.warehouse;
-      }
-    }
+    this.cache.get(JSON.stringify(cacheKey), { skipCache: this.skipCache && params.bypassCache }, key => {
+      return new Promise((resolve, reject) => {
+        this._get(JSON.parse(key), (err, data) => {
+          if (err) {
+            reject(err);
+            return;
+          }
 
-    return this._get({ pkg, env, version, meta, locale }, (err, data) => {
-      if (err) {
-        fn(err);
-        return;
-      }
-
-      if (this.cache) {
-        debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
-        this.cache.set(cacheKey, data);
-      }
-
-      fn(null, data);
-    });
+          debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
+          resolve(data);
+        });
+      });
+    })
+    .then(data => {
+      debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
+      fn(null, data.value);
+    })
+    .catch(fn);
   }
 
   /**

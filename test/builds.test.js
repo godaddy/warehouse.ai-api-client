@@ -21,9 +21,6 @@ describe('Builds', function () {
   afterEach(function () {
     sandbox.restore();
     sendStub = null;
-    if (builds && builds.cache) {
-      builds.cache.stopRefresh();
-    }
   });
 
   it('should have a get function', function () {
@@ -115,7 +112,7 @@ describe('Builds', function () {
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
-        assume(data1).equals(buildData);
+        assume(JSON.stringify(data1)).equals(JSON.stringify(buildData));
         assume(sendStub).is.called(1);
 
         builds.get({ pkg: 'some-pkg' }, (error2, data2) => {
@@ -132,7 +129,7 @@ describe('Builds', function () {
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
-        assume(data1).equals(buildData);
+        assume(JSON.stringify(data1)).equals(JSON.stringify(buildData));
         assume(sendStub).is.called(1);
 
         builds.get({ pkg: 'some-pkg' }, (error2, data2) => {
@@ -149,7 +146,7 @@ describe('Builds', function () {
 
       builds.get({ pkg: 'some-pkg', locale: 'en-NZ' }, (error1, data1) => {
         assume(error1).is.falsey();
-        assume(data1).equals(buildData);
+        assume(JSON.stringify(data1)).equals(JSON.stringify(buildData));
         assume(sendStub).is.called(1);
 
         builds.get({ pkg: 'some-pkg', locale: 'en-CA' }, (error2, data2) => {
@@ -166,7 +163,7 @@ describe('Builds', function () {
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
-        assume(data1).equals(buildData);
+        assume(JSON.stringify(data1)).equals(JSON.stringify(buildData));
         assume(sendStub).is.called(1);
 
         builds.get({ pkg: 'some-pkg', bypassCache: true }, (error2, data2) => {
@@ -175,22 +172,6 @@ describe('Builds', function () {
           assume(sendStub).is.called(2);
           done();
         });
-      });
-    });
-
-    it('caches data', function (done) {
-      builds = new Builds(wrhs, { cache: { enabled: true }});
-      assume(builds.cache).is.truthy();
-      assume(builds.cache._cache).is.truthy();
-      assume(builds.cache._cache.size).equals(0);
-
-      builds.get({ pkg: 'some-pkg' }, (error, data) => {
-        assume(error).is.falsey();
-        assume(data).equals(buildData);
-        assume(sendStub).is.called(1);
-        assume(builds.cache._cache).is.truthy();
-        assume(builds.cache._cache.size).equals(1);
-        done();
       });
     });
   });
