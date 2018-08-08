@@ -1,7 +1,7 @@
 {
   "name": "warehouse.ai-api-client",
   "description": "Node.JS API to communicate with warehouse.ai",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "main": "index.js",
   "scripts": {
     "test:mocha": "mocha test/*.test.js",
@@ -22,7 +22,7 @@
   "author": "GoDaddy Operating Company, LLC",
   "license": "MIT",
   "engines": {
-    "node": ">=5.0.0"
+    "node": ">=8.0.0"
   },
   "dependencies": {
     "async": "^2.6.0",
