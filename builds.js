@@ -41,7 +41,7 @@ class Builds {
 
     options = Object.assign({}, defaultOptions, options);
     this.cache = new Cache({});
-    this.skipCache = options.cache.enabled;
+    this.skipCache = !options.cache.enabled;
   }
 
   /**
@@ -91,7 +91,7 @@ class Builds {
       pkg
     };
 
-    this.cache.get(JSON.stringify(cacheKey), { skipCache: this.skipCache && params.bypassCache }, key => {
+    this.cache.get(JSON.stringify(cacheKey), { skipCache: this.skipCache || params.bypassCache }, key => {
       return new Promise((resolve, reject) => {
         this._get(JSON.parse(key), (err, data) => {
           if (err) {
