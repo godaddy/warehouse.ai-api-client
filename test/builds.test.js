@@ -174,6 +174,23 @@ describe('Builds', function () {
         });
       });
     });
+
+    it('caches data', function (done) {
+      builds = new Builds(wrhs, { cache: { enabled: true }});
+      assume(builds.cache).is.truthy();
+      debugger;
+      assume(builds.cache._caches[0]._items).is.truthy();
+      assume(Object.keys(builds.cache._caches[0]._items).length).equals(0);
+
+      builds.get({ pkg: 'some-pkg' }, (error, data) => {
+        assume(error).is.falsey();
+        assume(data).equals(buildData);
+        assume(sendStub).is.called(1);
+        assume(builds.cache._caches[0]._items).is.truthy();
+        assume(Object.keys(builds.cache._caches[0]._items).length).equals(1);
+        done();
+      });
+    });
   });
 
   describe('.heads', function () {
