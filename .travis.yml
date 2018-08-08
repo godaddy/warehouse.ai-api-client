@@ -2,6 +2,6 @@ sudo: false
 language: node_js
 node_js:
   - "8"
-  - "6"
+  - "10"
 before_install:
   - "npm install -g npm@latest-5"

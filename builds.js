@@ -40,7 +40,7 @@ class Builds {
     this.warehouse = warehouse;
 
     options = Object.assign({}, defaultOptions, options);
-    this.cache = new Cache({});
+    this.cache = new Cache(options.cache);
     this.skipCache = !options.cache.enabled;
   }
 
