@@ -37,6 +37,12 @@ const wrhs = new Warehouse({
       enabled: false
       // any other cache options (see below)
     }
+  },
+  assets: {
+    cache: {
+      enabled: false
+      // any other cache options (see below)
+    }
   }
 });
 ```

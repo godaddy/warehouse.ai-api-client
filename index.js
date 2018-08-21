@@ -5,6 +5,7 @@ const request = require('request');
 const retry = require('retryme');
 const Builds = require('./builds');
 const Verify = require('./verify');
+const Assets = require('./assets');
 
 /**
  * Node.JS API to interact the Warehouse.
@@ -50,6 +51,7 @@ function Warehouse(options) {
   //
   this.builds = new Warehouse.Builds(this, options.builds);
   this.verifier = new Warehouse.Verify(this);
+  this.assets = new Warehouse.Assets(this, options.assets);
 }
 
 /**
@@ -160,8 +162,9 @@ Warehouse.prototype.destroy = destroy('send, builds', 'publish', 'verify');
 // Expose the extra classes on the Warehouse class.
 //
 Warehouse.Builds = Builds;
-
 Warehouse.Verify = Verify;
+Warehouse.Assets = Assets;
+
 //
 // Expose the API.
 //
