@@ -55,7 +55,7 @@ describe('Builds', function () {
     it('fetches data from warehouse', function (done) {
       builds = new Builds(wrhs);
 
-      builds.get({ pkg: 'some-pkg', env: 'prod', version: '1.2.3', meta: 'meta', locale: 'en-NZ' }, (error, data) => {
+      const fluentResult = builds.get({ pkg: 'some-pkg', env: 'prod', version: '1.2.3', meta: 'meta', locale: 'en-NZ' }, (error, data) => {
         assume(error).is.falsey();
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
@@ -63,6 +63,8 @@ describe('Builds', function () {
           { query: { locale: 'en-NZ' }});
         done();
       });
+
+      assume(fluentResult).to.equal(wrhs);
     });
 
     it('provides defaults', function (done) {

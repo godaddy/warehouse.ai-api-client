@@ -45,7 +45,7 @@ describe('Assets', function () {
     it('fetches data from warehouse', function (done) {
       assets = new Assets(wrhs);
 
-      assets.get({ pkg: 'some-pkg', env: 'prod', version: '1.2.3', locale: 'en-NZ', filter: 'foo/bar' }, (error, data) => {
+      const fluentResult = assets.get({ pkg: 'some-pkg', env: 'prod', version: '1.2.3', locale: 'en-NZ', filter: 'foo/bar' }, (error, data) => {
         assume(error).is.falsey();
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
@@ -53,6 +53,8 @@ describe('Assets', function () {
           { query: { locale: 'en-NZ', filter: 'foo%2Fbar' }});
         done();
       });
+
+      assume(fluentResult).to.equal(wrhs);
     });
 
     it('provides defaults', function (done) {

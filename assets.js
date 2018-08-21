@@ -109,6 +109,8 @@ class Assets {
       fn(null, data.value);
     })
     .catch(fn);
+
+    return this.warehouse;
   }
 
   /**
