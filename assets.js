@@ -1,6 +1,6 @@
 const Cache = require('out-of-band-cache');
 
-const debug = require('diagnostics')('warehouse:builds');
+const debug = require('diagnostics')('warehouse:assets');
 const environments = new Map([
   ['development', 'dev'],
   ['dev', 'dev'],
@@ -16,12 +16,7 @@ const defaultOptions = {
   cache: {}
 };
 
-/**
- * Build interface for the Warehouse API.
- *
- * @class Builds
- */
-class Builds {
+class Assets {
   /**
    * @constructor
    * @param {Warehouse} warehouse Reference to the Warehouse instance.
@@ -48,15 +43,15 @@ class Builds {
    * Parses the parameters for get calls, normalizing into known names and applying the proper defaults & encodings
    *
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
-   * @returns {Object} The params parsed into `{ env, version, meta, locale, pkg }` with default values applied
+   * @returns {Object} The params parsed into `{ env, version, locale, pkg, filter }` with default values applied
    * and `pkg` uri encoded
    * @private
    */
   _readParams(params) {
     const env = environments.get(params.environment || params.env) || 'dev';
     const version = params.v || params.version;
-    const meta = params.meta ? 'meta' : null;
     const locale = params.locale || 'en-US';
+
     let pkg = params.package || params.pkg;
     if (pkg) {
       //
@@ -64,11 +59,16 @@ class Builds {
       //
       pkg = encodeURIComponent(pkg);
     }
-    return { env, version, meta, locale, pkg };
+
+    let filter = params.filter;
+    if (filter) {
+      filter = encodeURIComponent(filter);
+    }
+    return { env, version, locale, pkg, filter };
   }
 
   /**
-   * Get build information. Build information may be read from the cache if configured.
+   * Get asset information. Build information may be read from the cache if configured.
    *
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
    * @param {Function} fn Completion callback.
@@ -76,19 +76,19 @@ class Builds {
    * @public
    */
   get(params, fn) {
-    const { env, version, meta, locale, pkg } = this._readParams(params);
+    const { env, version, locale, pkg, filter } = this._readParams(params);
 
     if (!pkg) {
       return fn(new Error('invalid parameters supplied, missing `pkg`'));
     }
 
     const cacheKey = {
-      type: 'builds',
+      type: 'assets',
       env,
       version,
-      meta,
       locale,
-      pkg
+      pkg,
+      filter
     };
 
     this.cache.get(JSON.stringify(cacheKey), { skipCache: this.skipCache || params.bypassCache }, key => {
@@ -99,13 +99,13 @@ class Builds {
             return;
           }
 
-          debug('Caching build data: pkg = %s, env = %s, version = %s', pkg, env, version);
+          debug('Caching asset data: pkg = %s, env = %s, version = %s', pkg, env, version);
           resolve(data);
         });
       });
     })
       .then(data => {
-        debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
+        debug('Returning cached asset data: pkg = %s, env = %s, version = %s', pkg, env, version);
         fn(null, data.value);
       })
       .catch(fn);
@@ -114,72 +114,30 @@ class Builds {
   }
 
   /**
-   * Get build information. The cache is never used. This method assumes all the parameters have already been validated.
+   * Get asset information. The cache is never used. This method assumes all the parameters have already been validated.
    *
    * @param {Object} options Options object describing the build to get
    * @param {string} options.pkg The package name
    * @param {string} options.env The environment
    * @param {string} options.version The version
-   * @param {string} options.meta 'meta' or null
    * @param {string} options.locale The locale
    * @param {Function} fn Completion callback.
    * @returns {Warehouse} fluent interface.
    * @private
    */
-  _get({ pkg, env, version, meta, locale }, fn) {
-    debug('Build metadata: pkg = %s, env = %s, version = %s', pkg, env, version);
+  _get({ pkg, env, version, locale, filter }, fn) {
+    debug('Build metadata: pkg = %s, env = %s, version = %s', pkg, env, version, filter);
     return this.warehouse.send(
-      ['builds'].concat(pkg, env, version, meta).filter(Boolean).join('/'),
-      { query: { locale }},
+      ['assets', 'files'].concat(pkg, env, version).filter(Boolean).join('/'),
+      { query: { locale, filter }},
       fn
     );
-  }
-
-  /**
-   * Get the set of build heads for the given parameters
-   *
-   * @param {Object} params Parameters that specify, env and pkg
-   * @param {Function} fn Completion callback
-   * @returns {Warehouse} fluent interface
-   * @public
-   */
-  heads(params, fn) {
-    const env = environments.get(params.environment || params.env) || 'dev';
-    const name = params.package || params.pkg;
-
-    if (!name) {
-      return fn(
-        new Error('Invalid parameters supplied, missing `pkg`')
-      );
-    }
-
-    const query = { env, name };
-
-    debug('Build metadata: pkg = %s, env = %s', name, env);
-    return this.warehouse.send(
-      ['builds', '-', 'head'].join('/'),
-      { query },
-      fn
-    );
-  }
-
-  /**
-   * Get build information from the meta route.
-   *
-   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
-   * @param {Function} fn Completion callback.
-   * @returns {Warehouse} fluent interface.
-   * @public
-   */
-  meta(params, fn) {
-    params.meta = !!params.meta || false;
-    return this.get(params, fn);
   }
 }
 
-Builds.Cache = Cache;
+Assets.Cache = Cache;
 
 //
 // Expose the Build API.
 //
-module.exports = Builds;
+module.exports = Assets;

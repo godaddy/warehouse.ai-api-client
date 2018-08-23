@@ -6,15 +6,10 @@ const request = require('request');
 
 describe('Verify', function () {
   this.timeout(5E4);
-  let sandbox;
   const wrhs = new Wrhs('https://my-warehouse-api');
 
-  beforeEach(function () {
-    sandbox = sinon.sandbox.create();
-  });
-
   afterEach(function () {
-    sandbox.restore();
+    sinon.restore();
   });
 
   function mockRequest(opts) {
@@ -30,8 +25,8 @@ describe('Verify', function () {
   }
 
   it('makes appropriate api requests', function (done) {
-    sandbox.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.heads);
-    const requestStub = sandbox.stub(request, 'get');
+    sinon.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.heads);
+    const requestStub = sinon.stub(request, 'get');
     mockRequest({ stub: requestStub, heads: mocks.heads, statusCode: 200 });
     wrhs.verify({ pkg: 'whatever-package', env: 'prod' }, function (err, checks) {
       assume(err).is.falsey();
@@ -41,8 +36,8 @@ describe('Verify', function () {
   });
 
   it('responds with a list of failed checks', function (done) {
-    sandbox.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.heads);
-    const requestStub = sandbox.stub(request, 'get');
+    sinon.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.heads);
+    const requestStub = sinon.stub(request, 'get');
     const calls = mockRequest({ stub: requestStub, heads: mocks.heads, statusCode: 404 });
     wrhs.verify({ pkg: 'whatever-package', env: 'prod' }, function (err, checks) {
       assume(err).is.falsey();
@@ -52,8 +47,8 @@ describe('Verify', function () {
   });
 
   it('detects missing files when given numFiles', function (done) {
-    sandbox.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.missingFiles);
-    const requestStub = sandbox.stub(request, 'get');
+    sinon.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.missingFiles);
+    const requestStub = sinon.stub(request, 'get');
     mockRequest({ stub: requestStub, heads: mocks.missingFiles, statusCode: 200 });
     wrhs.verify({ pkg: 'whatever-package', env: 'prod', numFiles: 3 }, function (err, checks) {
       assume(err).is.falsey();
@@ -63,8 +58,8 @@ describe('Verify', function () {
   });
 
   it('skips execution with dry: true', function (done) {
-    sandbox.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.heads);
-    const requestStub = sandbox.stub(request, 'get');
+    sinon.stub(wrhs.builds, 'heads').yieldsAsync(null, mocks.heads);
+    const requestStub = sinon.stub(request, 'get');
     mockRequest({ stub: requestStub, heads: mocks.heads, statusCode: 200 });
     wrhs.verify({ pkg: 'whatever-package', env: 'prod', dry: true }, function (err, checks) {
       assume(err).is.falsey();

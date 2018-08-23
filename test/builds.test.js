@@ -7,7 +7,6 @@ assume.use(require('assume-sinon'));
 
 /* eslint-disable max-nested-callbacks */
 describe('Builds', function () {
-  let sandbox;
   const wrhs = new Wrhs('https://my-warehouse-api');
   let builds;
   const buildData = {};
@@ -15,11 +14,10 @@ describe('Builds', function () {
 
   beforeEach(function () {
     builds = null;
-    sandbox = sinon.sandbox.create();
   });
 
   afterEach(function () {
-    sandbox.restore();
+    sinon.restore();
     sendStub = null;
   });
 
@@ -40,7 +38,7 @@ describe('Builds', function () {
 
   describe('.get', function () {
     beforeEach(function () {
-      sendStub = sandbox.stub(wrhs, 'send')
+      sendStub = sinon.stub(wrhs, 'send')
         .callsArgWithAsync(2, null, buildData)
         .returns(wrhs);
     });
@@ -57,7 +55,7 @@ describe('Builds', function () {
     it('fetches data from warehouse', function (done) {
       builds = new Builds(wrhs);
 
-      builds.get({ pkg: 'some-pkg', env: 'prod', version: '1.2.3', meta: 'meta', locale: 'en-NZ' }, (error, data) => {
+      const fluentResult = builds.get({ pkg: 'some-pkg', env: 'prod', version: '1.2.3', meta: 'meta', locale: 'en-NZ' }, (error, data) => {
         assume(error).is.falsey();
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
@@ -65,6 +63,8 @@ describe('Builds', function () {
           { query: { locale: 'en-NZ' }});
         done();
       });
+
+      assume(fluentResult).to.equal(wrhs);
     });
 
     it('provides defaults', function (done) {
@@ -94,7 +94,7 @@ describe('Builds', function () {
 
     it('passes through error from warehouse', function (done) {
       sendStub.restore();
-      sendStub = sandbox.stub(wrhs, 'send')
+      sendStub = sinon.stub(wrhs, 'send')
         .callsArgWithAsync(2, new Error('This is an error.'))
         .returns(wrhs);
       builds = new Builds(wrhs);
@@ -195,7 +195,7 @@ describe('Builds', function () {
   describe('.heads', function () {
     beforeEach(function () {
       builds = new Builds(wrhs);
-      sendStub = sandbox.stub(wrhs, 'send')
+      sendStub = sinon.stub(wrhs, 'send')
         .callsArgWithAsync(2, null, buildData)
         .returns(wrhs);
     });
@@ -236,7 +236,7 @@ describe('Builds', function () {
 
     beforeEach(function () {
       builds = new Builds(wrhs);
-      buildStub = sandbox.stub(builds, 'get')
+      buildStub = sinon.stub(builds, 'get')
         .callsArgWithAsync(1, null, buildData)
         .returns(wrhs);
     });
