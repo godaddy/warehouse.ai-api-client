@@ -104,11 +104,11 @@ class Builds {
         });
       });
     })
-    .then(data => {
-      debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
-      fn(null, data.value);
-    })
-    .catch(fn);
+      .then(data => {
+        debug('Returning cached build data: pkg = %s, env = %s, version = %s', pkg, env, version);
+        fn(null, data.value);
+      })
+      .catch(fn);
 
     return this.warehouse;
   }
