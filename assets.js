@@ -17,7 +17,7 @@ const defaultOptions = {
 };
 
 class Assets {
-    /**
+  /**
    * @constructor
    * @param {Warehouse} warehouse Reference to the Warehouse instance.
    * @param {Object} [options] Builds options object
@@ -39,7 +39,7 @@ class Assets {
     this.skipCache = !options.cache.enabled;
   }
 
-    /**
+  /**
    * Parses the parameters for get calls, normalizing into known names and applying the proper defaults & encodings
    *
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
