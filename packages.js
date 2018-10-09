@@ -30,7 +30,7 @@ class Packages {
 
     debug('Returning package data for %s', pkg || 'all packages');
     this.warehouse.send(
-      ['packages'].concat(pkg && encodeURIComponent(pkg)).filter(Boolean).join('/'),
+      ['packages', pkg && encodeURIComponent(pkg)].filter(Boolean).join('/'),
       fn
     );
 
