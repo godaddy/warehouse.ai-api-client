@@ -14,6 +14,8 @@ class Packages {
    * Get package information. Information may be read from the cache if configured.
    *
    * @param {Object} params Parameters that specify pkg
+   * @param {string} params.pkg A specific package name to get information about
+   * @param {string} params.package A specific package name to get information about
    * @param {Function} fn Completion callback.
    * @returns {Warehouse} fluent interface.
    * @public
