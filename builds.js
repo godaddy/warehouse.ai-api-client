@@ -79,7 +79,7 @@ class Builds {
     const { env, version, meta, locale, pkg } = this._readParams(params);
 
     if (!pkg) {
-      return fn(new Error('invalid parameters supplied, missing `pkg`'));
+      return fn(new Error('Invalid parameters supplied, missing `pkg`'));
     }
 
     const cacheKey = {

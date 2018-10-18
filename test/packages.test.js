@@ -30,7 +30,7 @@ describe('Packages', function () {
 
     beforeEach(function () {
       sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(1, null, mockData)
+        .yields(null, mockData)
         .returns(wrhs);
     });
 
@@ -59,10 +59,7 @@ describe('Packages', function () {
     });
 
     it('passes through error from warehouse', function (done) {
-      sendStub.restore();
-      sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(1, new Error('This is an error.'))
-        .returns(wrhs);
+      sendStub.yields(new Error('This is an error.')).returns(wrhs);
       packages = new Packages(wrhs);
 
       packages.get({ pkg: 'some-pkg' }, error => {
@@ -74,20 +71,18 @@ describe('Packages', function () {
     });
   });
 
-  describe('get - all', function () {
+  describe('.get - all', function () {
     const mockData = [{ name: 'some-pkg' }];
 
     beforeEach(function () {
       sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(1, null, mockData)
+        .yields(null, mockData)
         .returns(wrhs);
     });
 
     it('passes through error from warehouse', function (done) {
-      sendStub.restore();
-      sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(1, new Error('This is an error.'))
-        .returns(wrhs);
+      sendStub.yields(new Error('This is an error.')).returns(wrhs);
+
       packages = new Packages(wrhs);
 
       packages.get(error => {
