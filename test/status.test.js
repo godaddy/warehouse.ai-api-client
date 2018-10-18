@@ -28,12 +28,12 @@ describe('Status', function () {
     assume(status.get).is.a('function');
   });
 
-  it('should have a getEvents function', function () {
-    assume(status.getEvents).is.a('function');
+  it('should have a events function', function () {
+    assume(status.events).is.a('function');
   });
 
-  it('should have a getProgress function', function () {
-    assume(status.getProgress).is.a('function');
+  it('should have a progress function', function () {
+    assume(status.progress).is.a('function');
   });
 
   describe('.get', function () {
@@ -93,7 +93,7 @@ describe('Status', function () {
     });
   });
 
-  describe('.getEvents', function () {
+  describe('.events', function () {
     const mockData = [{ name: 'some-pkg' }];
 
     beforeEach(function () {
@@ -103,7 +103,7 @@ describe('Status', function () {
     });
 
     it('gets status events', function (done) {
-      status.getEvents({ pkg: '@some-scope/some-pkg', env: 'dev' }, (error, data) => {
+      status.events({ pkg: '@some-scope/some-pkg', env: 'dev' }, (error, data) => {
         assume(error).is.falsey();
         assume(data).equals(mockData);
         assume(sendStub).is.called(1);
@@ -115,7 +115,7 @@ describe('Status', function () {
     it('passes through error from warehouse', function (done) {
       sendStub.yields(new Error('This is an error.')).returns(wrhs);
 
-      status.getEvents({ pkg: 'some-pkg', env: 'dev' }, error => {
+      status.events({ pkg: 'some-pkg', env: 'dev' }, error => {
         assume(error).is.truthy();
         assume(error.message).contains('This is an error.');
         assume(sendStub).is.called(1);
@@ -124,7 +124,7 @@ describe('Status', function () {
     });
 
     it('returns an error when no package specified', function (done) {
-      status.getEvents({ pkg: null, env: 'prod' }, error => {
+      status.events({ pkg: null, env: 'prod' }, error => {
         assume(error).is.truthy();
         assume(error.message).contains('Invalid parameters supplied, missing `pkg`');
         done();
@@ -132,7 +132,7 @@ describe('Status', function () {
     });
 
     it('returns an error when no env specified', function (done) {
-      status.getEvents({ pkg: 'something', env: null }, error => {
+      status.events({ pkg: 'something', env: null }, error => {
         assume(error).is.truthy();
         assume(error.message).contains('Invalid parameters supplied, missing `env`');
         done();
@@ -140,7 +140,7 @@ describe('Status', function () {
     });
   });
 
-  describe('.getProgress', function () {
+  describe('.progress', function () {
     const mockData = { progress: 'some-pkg' };
 
     beforeEach(function () {
@@ -150,7 +150,7 @@ describe('Status', function () {
     });
 
     it('gets status events', function (done) {
-      status.getProgress({ pkg: '@some-scope/some-pkg', env: 'dev' }, (error, data) => {
+      status.progress({ pkg: '@some-scope/some-pkg', env: 'dev' }, (error, data) => {
         assume(error).is.falsey();
         assume(data).equals(mockData);
         assume(sendStub).is.called(1);
@@ -162,7 +162,7 @@ describe('Status', function () {
     it('passes through error from warehouse', function (done) {
       sendStub.yields(new Error('This is an error.')).returns(wrhs);
 
-      status.getProgress({ pkg: 'some-pkg', env: 'dev' }, error => {
+      status.progress({ pkg: 'some-pkg', env: 'dev' }, error => {
         assume(error).is.truthy();
         assume(error.message).contains('This is an error.');
         assume(sendStub).is.called(1);
@@ -171,7 +171,7 @@ describe('Status', function () {
     });
 
     it('returns an error when no package specified', function (done) {
-      status.getProgress({ pkg: null, env: 'prod' }, error => {
+      status.progress({ pkg: null, env: 'prod' }, error => {
         assume(error).is.truthy();
         assume(error.message).contains('Invalid parameters supplied, missing `pkg`');
         done();
@@ -179,7 +179,7 @@ describe('Status', function () {
     });
 
     it('returns an error when no env specified', function (done) {
-      status.getProgress({ pkg: 'something', env: null }, error => {
+      status.progress({ pkg: 'something', env: null }, error => {
         assume(error).is.truthy();
         assume(error.message).contains('Invalid parameters supplied, missing `env`');
         done();

@@ -61,7 +61,7 @@ class Status {
    * @returns {Warehouse} fluent interface.
    * @public
    */
-  getEvents(params, fn) {
+  events(params, fn) {
     return this.getFromStatusApi('status-events', params, fn);
   }
 
@@ -77,7 +77,7 @@ class Status {
    * @returns {Warehouse} fluent interface.
    * @public
    */
-  getProgress(params, fn) {
+  progress(params, fn) {
     return this.getFromStatusApi('progress', params, fn);
   }
 }
