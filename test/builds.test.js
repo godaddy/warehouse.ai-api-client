@@ -39,7 +39,7 @@ describe('Builds', function () {
   describe('.get', function () {
     beforeEach(function () {
       sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(2, null, buildData)
+        .yields(null, buildData)
         .returns(wrhs);
     });
 
@@ -47,7 +47,7 @@ describe('Builds', function () {
       builds = new Builds();
       builds.get({ pkg: null }, error => {
         assume(error).is.truthy();
-        assume(error.message).contains('invalid parameters supplied, missing `pkg`');
+        assume(error.message).contains('Invalid parameters supplied, missing `pkg`');
         done();
       });
     });
@@ -93,10 +93,8 @@ describe('Builds', function () {
     });
 
     it('passes through error from warehouse', function (done) {
-      sendStub.restore();
-      sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(2, new Error('This is an error.'))
-        .returns(wrhs);
+      sendStub.yields(new Error('This is an error.')).returns(wrhs);
+
       builds = new Builds(wrhs);
 
       builds.get({ pkg: 'some-pkg' }, error => {
@@ -196,7 +194,7 @@ describe('Builds', function () {
     beforeEach(function () {
       builds = new Builds(wrhs);
       sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(2, null, buildData)
+        .yields(null, buildData)
         .returns(wrhs);
     });
 
@@ -237,7 +235,7 @@ describe('Builds', function () {
     beforeEach(function () {
       builds = new Builds(wrhs);
       buildStub = sinon.stub(builds, 'get')
-        .callsArgWithAsync(1, null, buildData)
+        .yields(null, buildData)
         .returns(wrhs);
     });
 

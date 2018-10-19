@@ -3,10 +3,12 @@ const qs = require('querystringify');
 const destroy = require('demolish');
 const request = require('request');
 const retry = require('retryme');
+const optOpts = require('optional-options')('options', 'next');
 const Builds = require('./builds');
 const Verify = require('./verify');
 const Assets = require('./assets');
 const Packages = require('./packages');
+const Status = require('./status');
 
 /**
  * Node.JS API to interact the Warehouse.
@@ -34,6 +36,7 @@ function Warehouse(options) {
   options = options || {};
   this.retry = options.retry || {};
   this.uri = options.uri;
+  this.statusUri = options.statusUri;
   this.auth = options.auth ? 'Bearer ' + options.auth : null;
   this.timeout = options.timeout || 3e4;
 
@@ -54,6 +57,7 @@ function Warehouse(options) {
   this.verifier = new Warehouse.Verify(this);
   this.assets = new Warehouse.Assets(this, options.assets);
   this.packages = new Warehouse.Packages(this, options.packages);
+  this.status = new Warehouse.Status(this, options.status);
 }
 
 /**
@@ -89,7 +93,7 @@ Warehouse.prototype.verify = function v(opts, fn) {
 };
 
 /**
- * Proxy method to send requests to the Warehouse.
+ * Proxy method to send requests to the API.
  *
  * Options:
  *
@@ -98,17 +102,15 @@ Warehouse.prototype.verify = function v(opts, fn) {
  * - query: Query (string) Object.
  * - headers: HTTP headers.
  *
+ * @param {String} uri The base URI to make the request to.
  * @param {String} pathname Request pathname.
  * @param {Object} options Request configuration.
  * @param {Function} next Completion callback.
  * @returns {Warehouse} fluent interface
  * @public
  */
-Warehouse.prototype.send = function send(pathname, options, next) {
-  if (typeof options === 'function') {
-    next = options;
-    options = {};
-  }
+Warehouse.prototype.makeRequest = function makeRequest(uri, pathname, options, next) {
+  ({ options, next } = optOpts(options, next));
 
   options = Object.assign({
     timeout: this.timeout,
@@ -124,7 +126,7 @@ Warehouse.prototype.send = function send(pathname, options, next) {
     && !options.headers.Authorization) {
     options.headers.authorization = this.auth;
   }
-  options.url = [this.uri].concat(pathname).join('/') + qs.stringify(options.query, true);
+  options.url = [uri].concat(pathname).join('/') + qs.stringify(options.query, true);
   debug('Sending %s request to %s with timeout %d', options.method, options.url, this.timeout);
 
   //
@@ -148,8 +150,47 @@ Warehouse.prototype.send = function send(pathname, options, next) {
     });
   }, next);
 
-
   return this;
+};
+
+/**
+ * Proxy method to send requests to the Warehouse.
+ *
+ * Options:
+ *
+ * - timeout: Request timeout
+ * - method: HTTP method.
+ * - query: Query (string) Object.
+ * - headers: HTTP headers.
+ *
+ * @param {String} pathname Request pathname.
+ * @param {Object} options Request configuration.
+ * @param {Function} next Completion callback.
+ * @returns {Warehouse} fluent interface
+ * @public
+ */
+Warehouse.prototype.send = function send(pathname, options, next) {
+  return this.makeRequest(this.uri, pathname, options, next);
+};
+
+/**
+ * Proxy method to send requests to the Warehouse Status API.
+ *
+ * Options:
+ *
+ * - timeout: Request timeout
+ * - method: HTTP method.
+ * - query: Query (string) Object.
+ * - headers: HTTP headers.
+ *
+ * @param {String} pathname Request pathname.
+ * @param {Object} options Request configuration.
+ * @param {Function} next Completion callback.
+ * @returns {Warehouse} fluent interface
+ * @public
+ */
+Warehouse.prototype.sendStatus = function sendStatus(pathname, options, next) {
+  return this.makeRequest(this.statusUri, pathname, options, next);
 };
 
 /**
@@ -167,6 +208,7 @@ Warehouse.Builds = Builds;
 Warehouse.Verify = Verify;
 Warehouse.Assets = Assets;
 Warehouse.Packages = Packages;
+Warehouse.Status = Status;
 
 //
 // Expose the API.

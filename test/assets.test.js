@@ -8,8 +8,8 @@ assume.use(require('assume-sinon'));
 /* eslint-disable max-nested-callbacks */
 describe('Assets', function () {
   const wrhs = new Wrhs('https://my-warehouse-api');
-  let assets;
   const buildData = {};
+  let assets;
   let sendStub;
 
   beforeEach(function () {
@@ -29,7 +29,7 @@ describe('Assets', function () {
   describe('.get', function () {
     beforeEach(function () {
       sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(2, null, buildData)
+        .yields(null, buildData)
         .returns(wrhs);
     });
 
@@ -83,10 +83,7 @@ describe('Assets', function () {
     });
 
     it('passes through error from warehouse', function (done) {
-      sendStub.restore();
-      sendStub = sinon.stub(wrhs, 'send')
-        .callsArgWithAsync(2, new Error('This is an error.'))
-        .returns(wrhs);
+      sendStub.yields(new Error('This is an error.')).returns(wrhs);
       assets = new Assets(wrhs);
 
       assets.get({ pkg: 'some-pkg' }, error => {
