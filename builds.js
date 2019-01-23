@@ -134,7 +134,52 @@ class Builds {
       fn
     );
   }
+  /**
+  * Trigger a build based on the given parameters, optionally specify to
+  * promote as well as build
+  *
+  * @param {Object} params Parameters that specify, env, pkg, version and build
+  * @param {Function} fn Completion callback
+  * @returns {Warehouse} fluent interface
+  * @public
+  */
+  trigger({ promote = false, ...params }, fn) {
+    if (!environments.has(params.env)) return setImmediate(fn, new Error('Valid environment must be given'));
+    const { pkg, env, version } = this._readParams(params);
+    debug(`build promote: pkg = ${pkg}, env = ${env}, version = ${version}, promote = ${promote}`);
 
+    const opts = { method: 'PATCH', query: { promote }};
+
+    return this.warehouse.send(
+      ['builds'].concat(pkg, env, version).join('/'),
+      opts,
+      fn
+    );
+  }
+
+  /**
+  * Promote a build based on the given parameters, optionally specify to
+  * build as well as promote
+  *
+  * @param {Object} params Parameters that specify, env, pkg, version and build
+  * @param {Function} fn Completion callback
+  * @returns {Warehouse} fluent interface
+  * @public
+  */
+  promote({ build = false, ...params }, fn) {
+    if (!environments.has(params.env)) return setImmediate(fn, new Error('Valid environment must be given'));
+
+    const { pkg, env, version } = this._readParams(params);
+    debug(`build promote: pkg = ${pkg}, env = ${env}, version = ${version}, build = ${build}`);
+
+    const opts = { method: 'PATCH', query: { build }};
+
+    return this.warehouse.send(
+      ['promote'].concat(pkg, env, version).join('/'),
+      opts,
+      fn
+    );
+  }
   /**
    * Get the set of build heads for the given parameters
    *

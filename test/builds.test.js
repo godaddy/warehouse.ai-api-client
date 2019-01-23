@@ -36,6 +36,16 @@ describe('Builds', function () {
     assume(builds.meta).is.a('function');
   });
 
+  it('should have a promote function', function () {
+    builds = new Builds();
+    assume(builds.promote).is.a('function');
+  });
+
+  it('should have a trigger function', function () {
+    builds = new Builds();
+    assume(builds.trigger).is.a('function');
+  });
+
   describe('.get', function () {
     beforeEach(function () {
       sendStub = sinon.stub(wrhs, 'send')
@@ -256,6 +266,81 @@ describe('Builds', function () {
         done();
       });
     });
+  });
+
+  describe('.trigger', function () {
+    beforeEach(function () {
+      builds = new Builds(wrhs);
+      sendStub = sinon.stub(wrhs, 'send')
+        .yields(null, buildData)
+        .returns(wrhs);
+    });
+
+    it('returns error when there is no env specified', function (done) {
+      builds.trigger({ pkg: 'what', version: '2.0.0' }, function (err) {
+        assume(err).exists();
+        assume(err.message).contains('Valid');
+        done();
+      });
+    });
+
+    it('is called with correct parameters, default promote; false', function (done) {
+      builds.trigger({ pkg: 'what', env: 'dev', version: '1.0.0' }, function (err) {
+        assume(err).does.not.exist();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/what/dev/1.0.0',
+          { method: 'PATCH', query: { promote: false }});
+        done();
+      });
+    });
+
+    it('is called with correct parameters, with promote: true', function (done) {
+      builds.trigger({ pkg: 'what', env: 'dev', version: '1.0.0', promote: true }, function (err) {
+        assume(err).does.not.exist();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('builds/what/dev/1.0.0',
+          { method: 'PATCH', query: { promote: true }});
+        done();
+      });
+    });
+
+  });
+  describe('.promote', function () {
+    beforeEach(function () {
+      builds = new Builds(wrhs);
+      sendStub = sinon.stub(wrhs, 'send')
+        .yields(null, buildData)
+        .returns(wrhs);
+    });
+
+    it('returns error when there is no env specified', function (done) {
+      builds.promote({ pkg: 'what', version: '2.0.0' }, function (err) {
+        assume(err).exists();
+        assume(err.message).contains('Valid');
+        done();
+      });
+    });
+
+    it('is called with correct parameters, default build; false', function (done) {
+      builds.promote({ pkg: 'what', env: 'dev', version: '1.0.0' }, function (err) {
+        assume(err).does.not.exist();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('promote/what/dev/1.0.0',
+          { method: 'PATCH', query: { build: false }});
+        done();
+      });
+    });
+
+    it('is called with correct parameters, with build: true', function (done) {
+      builds.promote({ pkg: 'what', env: 'dev', version: '1.0.0', build: true }, function (err) {
+        assume(err).does.not.exist();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch('promote/what/dev/1.0.0',
+          { method: 'PATCH', query: { build: true }});
+        done();
+      });
+    });
+
   });
 });
 /* eslint-enable max-nested-callbacks */
