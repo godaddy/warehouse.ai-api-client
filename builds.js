@@ -134,6 +134,7 @@ class Builds {
       fn
     );
   }
+
   /**
   * Trigger a build based on the given parameters, optionally specify to
   * promote as well as build
@@ -180,6 +181,7 @@ class Builds {
       fn
     );
   }
+
   /**
    * Get the set of build heads for the given parameters
    *
