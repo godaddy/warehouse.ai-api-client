@@ -46,7 +46,7 @@
     "eslint-plugin-react": "^7.11.1",
     "jscs-jsx-rules": "0.0.1",
     "mocha": "^5.2.0",
-    "nyc": "^13.1.0",
+    "nyc": "^13.3.0",
     "sinon": "^7.0.0"
   }
 }
