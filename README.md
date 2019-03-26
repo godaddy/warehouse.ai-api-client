@@ -15,6 +15,9 @@ const wrhs = new Warehouse('https://warehouse-instance');
 
 // Get build for environment for a given package name
 wrhs.builds.get({ env, pkg }, (err, build) => {});
+
+// Get release-line information for a package, if version is omitted, uses latest
+wrhs.releaseLine.get({ pkg, version }, (err, build) => {});
 ```
 
 ## Configuration
