@@ -8,7 +8,7 @@
     "test:debug": "mocha --inspect-brk test/*.test.js",
     "test": "nyc --reporter=text --reporter=json-summary npm run test:mocha",
     "lint": "eslint-godaddy --fix *.js test/*.js",
-    "pretest": "npm run lint"
+    "posttest": "npm run lint"
   },
   "repository": {
     "type": "git",
