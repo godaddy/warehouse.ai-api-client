@@ -38,6 +38,6 @@ describe('warehousei.ai-api-client.tests', function () {
   });
 
   it('should properly parse undefined query value', function () {
-    assume(qs.stringify({ a: undefined, b: null, c: '' })).is.equal('a=&b=&c=');
+    assume(qs.stringify({ a: void 0, b: null, c: '' })).is.equal('a=&b=&c=');
   });
 });
