@@ -30,7 +30,7 @@
     "diagnostics": "^1.0.1",
     "optional-options": "^1.0.0",
     "out-of-band-cache": "^1.1.0",
-    "querystringify": "2.0.0",
+    "querystringify": "^2.1.1",
     "request": "^2.70.0",
     "retryme": "^1.0.0"
   },
