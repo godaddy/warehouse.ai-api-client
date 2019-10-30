@@ -1,5 +1,6 @@
 const assume = require('assume');
 const sinon = require('sinon');
+const qs = require('querystringify');
 const Warehouse = require('..');
 
 assume.use(require('assume-sinon'));
@@ -34,5 +35,9 @@ describe('warehousei.ai-api-client.tests', function () {
     assume(buildsSpy).is.called(1);
     assume(buildsSpy).is.calledWithNew();
     assume(buildsSpy).is.calledWithExactly(warehouseClient, buildConfig);
+  });
+
+  it('should properly parse undefined query value', function () {
+    assume(qs.stringify({ a: void 0, b: null, c: '' })).is.equal('a=&b=&c=');
   });
 });
