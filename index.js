@@ -38,7 +38,7 @@ function Warehouse(options) {
   this.retry = options.retry || {};
   this.uri = options.uri;
   this.statusUri = options.statusUri;
-  this.auth = this._normalizeAuth(options.auth)
+  this.auth = this._normalizeAuth(options.auth);
   this.timeout = options.timeout || 3e4;
 
   //
@@ -65,10 +65,10 @@ function Warehouse(options) {
 /**
  * Normalize possible auth arguments
  * @function _normalizeAuth
- * @params {Object|String} auth Auth option
+ * @params {Object|String} opts Auth options from constructor
  * @returns {String} to be used for authorization header
  */
-Warehouse.prototype._normalizeAuth = functon _normalizeAuth(opts) {
+Warehouse.prototype._normalizeAuth = function _normalizeAuth(opts) {
   if (!opts) return;
   // Legacy support is if opts is a string, we send it as a bearer token
   if (typeof opts === 'string') return 'Bearer ' + opts;
@@ -77,7 +77,7 @@ Warehouse.prototype._normalizeAuth = functon _normalizeAuth(opts) {
 
   const type = opts.type.toLowerCase();
 
-  switch(type) {
+  switch (type) {
     case 'basic':
       return `Basic ${opts.encoded ? opts.token : Buffer.from(opts.token, 'utf8').toString('base64')}`;
     case 'bearer':
