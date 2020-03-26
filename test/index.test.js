@@ -14,6 +14,19 @@ describe('warehousei.ai-api-client.tests', function () {
     }).throws();
   });
 
+  it('should properly set auth for basic auth', function () {
+    const token = 'myuser:mypass';
+    const wrhs = new Warehouse({
+      uri: 'https://whatever-warehouse.com',
+      auth: {
+        type: 'basic',
+        token
+      }
+    });
+    console.log(wrhs.auth);
+    assume(wrhs.auth).equals(`Basic ${Buffer.from(token, 'utf8').toString('base64')}`);
+  });
+
   it('should have a publish method', function () {
     assume(wrhs.publish).is.a('function');
   });
