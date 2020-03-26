@@ -38,7 +38,10 @@ const wrhs = new Warehouse({
   uri: 'https://warehouse-instance', // where the wrhs instance is located
   statusUri: 'https://warehouse-status-instance', // where the warehouse.ai-status-api instance is located
   retry: {}, // retry configuration (see below)
-  auth: 'Bearer 123a4567-1a23-12345-a123-a1ab123a1234', // token you can use to authenticate your request
+  auth: {
+    type: 'basic', // we support Bearer auth tokens as well as basic auth
+    token: 'myuser:mypass'
+  },
   timeout: 3e4, // how long to wait until a request times out, in milliseconds
   strictSSL: false, // whether or not to use https
   concurrency: 10, // how many builds to verify at once (you can also use conc as shorthand)
