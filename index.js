@@ -73,7 +73,7 @@ Warehouse.prototype._normalizeAuth = function _normalizeAuth(opts) {
   // Legacy support is if opts is a string, we send it as a bearer token
   if (typeof opts === 'string') return 'Bearer ' + opts;
 
-  if (!opts.type || !opts.token) return;
+  if (!opts.type || !opts.token) throw new Error('auth type and token required');
 
   const type = opts.type.toLowerCase();
 
@@ -83,7 +83,7 @@ Warehouse.prototype._normalizeAuth = function _normalizeAuth(opts) {
     case 'bearer':
       return `Bearer ${opts.token}`;
     default:
-      return;
+      throw new Error(`Auth ${opts.type} not supported, options: basic, bearer`);
   }
 };
 
