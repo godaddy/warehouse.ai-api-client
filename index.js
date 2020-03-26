@@ -85,7 +85,6 @@ Warehouse.prototype._normalizeAuth = function _normalizeAuth(opts) {
     default:
       return;
   }
-
 };
 
 /**
