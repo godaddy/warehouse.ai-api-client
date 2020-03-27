@@ -14,6 +14,32 @@ describe('warehousei.ai-api-client.tests', function () {
     }).throws();
   });
 
+  it('should properly set auth for basic auth', function () {
+    const token = 'myuser:mypass';
+    const wrhs = new Warehouse({
+      uri: 'https://whatever-warehouse.com',
+      auth: {
+        type: 'basic',
+        token
+      }
+    });
+
+    assume(wrhs.auth).equals(`Basic ${Buffer.from(token, 'utf8').toString('base64')}`);
+  });
+
+  it('should properly set auth for bearer auth', function () {
+    const token = '123a4567-1a23-12345-a123-a1ab123a1234';
+    const wrhs = new Warehouse({
+      uri: 'https://whatever-warehouse.com',
+      auth: {
+        type: 'bearer',
+        token
+      }
+    });
+
+    assume(wrhs.auth).equals(`Bearer ${token}`);
+  });
+
   it('should have a publish method', function () {
     assume(wrhs.publish).is.a('function');
   });

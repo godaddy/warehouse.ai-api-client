@@ -38,7 +38,7 @@ function Warehouse(options) {
   this.retry = options.retry || {};
   this.uri = options.uri;
   this.statusUri = options.statusUri;
-  this.auth = options.auth ? 'Bearer ' + options.auth : null;
+  this.auth = this._normalizeAuth(options.auth);
   this.timeout = options.timeout || 3e4;
 
   //
@@ -61,6 +61,31 @@ function Warehouse(options) {
   this.status = new Warehouse.Status(this, options.status);
   this.releaseLine = new Warehouse.ReleaseLine(this, options.releaseLine);
 }
+
+/**
+ * Normalize possible auth arguments
+ * @function _normalizeAuth
+ * @param {Object|String} opts - Auth options from constructor
+ * @returns {String} to be used for authorization header
+ */
+Warehouse.prototype._normalizeAuth = function _normalizeAuth(opts) {
+  if (!opts) return;
+  // Legacy support is if opts is a string, we send it as a bearer token
+  if (typeof opts === 'string') return 'Bearer ' + opts;
+
+  if (!opts.type || !opts.token) throw new Error('auth type and token required');
+
+  const type = opts.type.toLowerCase();
+
+  switch (type) {
+    case 'basic':
+      return `Basic ${opts.encoded ? opts.token : Buffer.from(opts.token, 'utf8').toString('base64')}`;
+    case 'bearer':
+      return `Bearer ${opts.token}`;
+    default:
+      throw new Error(`Auth ${opts.type} not supported, options: basic, bearer`);
+  }
+};
 
 /**
  * Publish a package to warehouse
