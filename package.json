@@ -28,10 +28,11 @@
     "async": "^2.6.0",
     "demolish": "^1.0.2",
     "diagnostics": "^1.0.1",
+    "fetch-retry": "^4.0.1",
+    "node-fetch": "^2.6.1",
     "optional-options": "^1.0.0",
     "out-of-band-cache": "^1.1.0",
     "querystringify": "^2.1.1",
-    "request": "^2.70.0",
     "retryme": "^1.0.0"
   },
   "devDependencies": {
@@ -46,6 +47,7 @@
     "eslint-plugin-react": "^7.13.0",
     "jscs-jsx-rules": "0.0.1",
     "mocha": "^5.2.0",
+    "nock": "^13.0.4",
     "nyc": "^13.3.0",
     "sinon": "^7.3.2"
   }

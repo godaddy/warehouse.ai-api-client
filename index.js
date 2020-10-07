@@ -1,7 +1,8 @@
 const debug = require('diagnostics')('warehouse.ai-api-client');
 const qs = require('querystringify');
 const destroy = require('demolish');
-const request = require('request');
+const https = require('https');
+const fetch = require('node-fetch');
 const retry = require('retryme');
 const optOpts = require('optional-options')('options', 'next');
 const Builds = require('./builds');
@@ -46,6 +47,9 @@ function Warehouse(options) {
   // warehouse server are fixed.
   //
   this.strictSSL = options.strictSSL || false;
+  const httpsAgentOptions = {};
+  if (this.strictSSL === false) httpsAgentOptions.rejectUnauthorized = false;
+  this.httpsAgent = new https.Agent(httpsAgentOptions);
 
   // Options for verify
   this.conc = options.concurrency || options.conc || 10;
@@ -141,9 +145,8 @@ Warehouse.prototype.makeRequest = function makeRequest(uri, pathname, options, n
 
   options = Object.assign({
     timeout: this.timeout,
-    strictSSL: this.strictSSL,
+    agent: this.httpsAgent,
     method: 'GET',
-    json: true,
     query: {},
     headers: {}
   }, options);
@@ -164,17 +167,21 @@ Warehouse.prototype.makeRequest = function makeRequest(uri, pathname, options, n
       || err.message.includes('400');
   });
 
-  operation.attempt(fn => {
-    request(options, function replied(error, response, body) {
-      if (error) return fn(error);
+  operation.attempt(async fn => {
+    try {
+      const res = await fetch(options.url, options);
+      const body = await res.json();
 
-      if (response.statusCode === 404) return fn(new Error(`404 Not Found ${JSON.stringify(body)}`));
-      if (response.statusCode === 400) return fn(new Error(`400 Bad Request ${JSON.stringify(body)}`));
+      if (res.statusCode === 404) return fn(new Error(`404 Not Found ${JSON.stringify(body)}`));
+      if (res.statusCode === 400) return fn(new Error(`400 Bad Request ${JSON.stringify(body)}`));
 
-      if (response.statusCode < 200 || response.statusCode > 299) return fn(new Error(`Invalid status code ${response.statusCode} ${body ? JSON.stringify(body) : ''}`));
+      if (res.statusCode < 200 || res.statusCode > 299) return fn(new Error(`Invalid status code ${res.statusCode} ${body ? JSON.stringify(body) : ''}`));
 
       fn(null, body);
-    });
+    } catch (err) {
+      fn(err);
+      return;
+    }
   }, next);
 
   return this;

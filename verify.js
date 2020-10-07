@@ -1,21 +1,25 @@
 const debug = require('diagnostics')('warehouse.ai-api-client:verify');
-const request = require('request');
+const https = require('https');
+const nodeFetch = require('node-fetch');
+const fetch = require('fetch-retry')(nodeFetch);
 const async = require('async');
 const url = require('url');
 
 class Verify {
   constructor(wrhs) {
     this.wrhs = wrhs;
-    this.strictSSL = wrhs.strictSSL;
     this.conc = wrhs.conc || 10;
     this.dry = wrhs.dry;
+    const httpsAgentOptions = {};
+    if (wrhs.strictSSL === false) httpsAgentOptions.rejectUnauthorized = false;
+    this.httpsAgent = new https.Agent(httpsAgentOptions);
   }
 
   /**
    * Fetches all files from one of the builds
    * @param {Object} opts Options for the function
    * @param {BuildHead} head BuildHead returned from Warehouse.
-   * @param {Function}  done Continuation to respond to when complete.
+   * @param {Function} done Continuation to respond to when complete.
    * @returns {undefined}
    */
   verifyOne(opts, head, done) {
@@ -43,16 +47,32 @@ class Verify {
     debug(`${buildId} | Verify assets`);
     async.map(urls, (uri, next) => {
       debug(`${buildId} | Fetch ${uri}`);
-      request.get(uri, { strictSSL: this.strictSSL }, (err, res) => {
-        if (err || res.statusCode !== 200) {
-          debug(`${buildId} | Fail ${uri}: ${err || res.statusCode}`);
-          return next(null, uri);
-        }
+      this.fetch(uri)
+        .then(res => {
+          if (res.status !== 200) {
+            debug(`${buildId} | Fail ${uri}: ${res.status}`);
+            return next(null, uri);
+          }
 
-        debug(`${buildId} | Fetch ok ${uri}`);
-        next();
-      });
+          debug(`${buildId} | Fetch ok ${uri}`);
+          next();
+        })
+        .catch(err => {
+          debug(`${buildId} | Fail ${uri}: ${err}`);
+          return next(null, uri);
+        });
     }, done);
+  }
+
+  /**
+   * Fetch a URL
+   *
+   * @param {string} uri URI to verify
+   * @returns {Promise<Response>} promise for a response
+   * @private
+   */
+  fetch(uri) {
+    return fetch(uri, { agent: this.httpsAgent });
   }
 
   /**

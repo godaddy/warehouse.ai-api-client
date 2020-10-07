@@ -16,7 +16,7 @@ describe('warehousei.ai-api-client.tests', function () {
 
   it('should properly set auth for basic auth', function () {
     const token = 'myuser:mypass';
-    const wrhs = new Warehouse({
+    const wrhsBasic = new Warehouse({
       uri: 'https://whatever-warehouse.com',
       auth: {
         type: 'basic',
@@ -24,12 +24,12 @@ describe('warehousei.ai-api-client.tests', function () {
       }
     });
 
-    assume(wrhs.auth).equals(`Basic ${Buffer.from(token, 'utf8').toString('base64')}`);
+    assume(wrhsBasic.auth).equals(`Basic ${Buffer.from(token, 'utf8').toString('base64')}`);
   });
 
   it('should properly set auth for bearer auth', function () {
     const token = '123a4567-1a23-12345-a123-a1ab123a1234';
-    const wrhs = new Warehouse({
+    const wrhsToken = new Warehouse({
       uri: 'https://whatever-warehouse.com',
       auth: {
         type: 'bearer',
@@ -37,7 +37,7 @@ describe('warehousei.ai-api-client.tests', function () {
       }
     });
 
-    assume(wrhs.auth).equals(`Bearer ${token}`);
+    assume(wrhsToken.auth).equals(`Bearer ${token}`);
   });
 
   it('should have a publish method', function () {
