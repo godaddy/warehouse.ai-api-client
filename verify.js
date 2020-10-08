@@ -1,7 +1,10 @@
 const debug = require('diagnostics')('warehouse.ai-api-client:verify');
 const https = require('https');
 const nodeFetch = require('node-fetch');
-const fetch = require('fetch-retry')(nodeFetch);
+const fetch = require('fetch-retry')(nodeFetch, {
+  retries: 3,
+  retryDelay: 1000
+});
 const async = require('async');
 const url = require('url');
 
@@ -17,10 +20,9 @@ class Verify {
 
   /**
    * Fetches all files from one of the builds
-   * @param {Object} opts Options for the function
+   * @param {VerifyOptions} opts Options for the function
    * @param {BuildHead} head BuildHead returned from Warehouse.
-   * @param {Function} done Continuation to respond to when complete.
-   * @returns {undefined}
+   * @param {async.AsyncResultArrayCallback<string>} done Continuation to respond to when complete.
    */
   verifyOne(opts, head, done) {
     const buildId = head.buildId;
@@ -36,18 +38,22 @@ class Verify {
 
     if (dry) {
       debug(`Dry: Skip verify assets for ${head.buildId}`);
-      return done(null, []);
+      done(null, []);
+      return;
     }
 
     if (numFiles) {
       debug(`Expect number of files in head ${urls.length} to equal ${numFiles}`);
-      if (numFiles > urls.length) return done(null, [`https://${buildId}/missingfile`]);
+      if (numFiles > urls.length) {
+        done(null, [`https://${buildId}/missingfile`]);
+        return;
+      }
     }
 
     debug(`${buildId} | Verify assets`);
     async.map(urls, (uri, next) => {
       debug(`${buildId} | Fetch ${uri}`);
-      this.fetch(uri)
+      this.fetch(uri, opts)
         .then(res => {
           if (res.status !== 200) {
             debug(`${buildId} | Fail ${uri}: ${res.status}`);
@@ -68,16 +74,18 @@ class Verify {
    * Fetch a URL
    *
    * @param {string} uri URI to verify
+   * @param {VerifyOptions} opts Options for the verification
    * @returns {Promise<Response>} promise for a response
    * @private
    */
-  fetch(uri) {
-    return fetch(uri, { agent: this.httpsAgent });
+  fetch(uri, opts) {
+    const { retries, retryDelay } = opts || {};
+    return fetch(uri, { agent: this.httpsAgent, retries, retryDelay });
   }
 
   /**
    * Verifies all files in the given set of builds.
-   * @param {Object} opts Options for verify
+   * @param {VerifyOptions} opts Options for verify
    * @param {BuildHead[]} heads Array of BuildHead returned from Warehouse.
    * @param {Function} done Continuation when completed
    */
@@ -95,8 +103,25 @@ class Verify {
   }
 
   /**
+   * @callback delayFn
+   * @param {number} attempt 0-based index of attempt number
+   * @param {Error} error Error that triggered the retry
+   * @param {Response} response Fetch respons object
+   * @returns {number} Delay, in ms
+   */
+  /**
+   * @typedef {Object} VerifyOptions
+   * @prop {string} pkg Package to verify
+   * @prop {string} env Environment to verify in
+   * @prop {number} [numFiles] Number of files expected for this package
+   * @prop {number} [conc] Number of concurrent requests to run
+   * @prop {boolean} [dry=false] Whether this is a dry run
+   * @prop {number} [retries=3] Number of retry attempts on file loads
+   * @prop {number|delayFn} [retryDelay=1000] Delay, in ms, between retry attempts; or a function to determine that
+   */
+  /**
    * Fetch all builds from Warehouse and then verify them.
-   * @param {Object} opts { pkg, env, dry }
+   * @param {VerifyOptions} opts Options
    * @param {Function} done Continuation when complete
    */
   execute(opts, done) {
