@@ -1,5 +1,8 @@
 # Changelog
 
+- **BREAKING:** `verify` now passes back the build ID and failure reason in addition to the URI that failed
+  - Instead of an array of URI strings, it is now an array of objects containing
+    `{ buildId: string, uri: string, reason: string}`
 - **MAJOR:** Migrate from `request` to `node-fetch`
   - Some methods in the base export accept an `options` parameter that sets request options. Since these are now passed
     through to `node-fetch` rather than `request`, there may be incompatibilities introduced. As such, this is a major
