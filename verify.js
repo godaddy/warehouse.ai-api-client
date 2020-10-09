@@ -22,7 +22,7 @@ class Verify {
    * @typedef {Object} VerificationFailure
    * @prop {string} [buildId] ID of build being verified
    * @prop {string} [uri] URI of file that failed
-   * @prop {string|Error} reason Reason for failure
+   * @prop {string} reason Reason for failure
    */
   /**
    * Fetches all files from one of the builds
@@ -49,7 +49,8 @@ class Verify {
     }
 
     if (numFiles) {
-      const reason = `Expect number of files in head ${urls.length} to equal ${numFiles}`;
+      let reason = `Expect number of files in head ${urls.length} to equal ${numFiles}\nFound the following files:\n`;
+      reason += urls.join('\n');
       debug(reason);
       if (numFiles > urls.length) {
         done(null, [{ reason }]);
@@ -64,7 +65,7 @@ class Verify {
         .then(res => {
           if (res.status !== 200) {
             debug(`${buildId} | Fail ${uri}: ${res.status}`);
-            return next(null, { buildId, uri, reason: `status ${res.status}` });
+            return next(null, { buildId, uri, reason: `Received HTTP status ${res.status}` });
           }
 
           debug(`${buildId} | Fetch ok ${uri}`);
@@ -72,7 +73,7 @@ class Verify {
         })
         .catch(err => {
           debug(`${buildId} | Fail ${uri}: ${err}`);
-          return next(null, { buildId, uri, reason: err });
+          return next(null, { buildId, uri, reason: err && err.toString() || 'unknown' });
         });
     }, done);
   }
