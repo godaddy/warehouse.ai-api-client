@@ -1,5 +1,7 @@
 # Changelog
 
+## 5.0.0
+
 - **BREAKING:** `verify` now passes back the build ID and failure reason in addition to the URI that failed
   - Instead of an array of URI strings, it is now an array of objects containing
     `{ buildId: string, uri: string, reason: string}`
