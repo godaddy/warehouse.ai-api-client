@@ -41,6 +41,13 @@ describe('Verify', function () {
     wrhs.verify({ pkg: 'whatever-package', env: 'prod' }, function (err, checks) {
       assume(err).is.falsey();
       assume(checks).has.length(calls);
+      checks.forEach(chk => {
+        assume(chk).hasOwn('buildId');
+        assume(chk.buildId).contains('whatever-package!prod!');
+        assume(chk).hasOwn('uri');
+        assume(chk.uri).is.a('string');
+        assume(chk).hasOwn('reason', 'status 404');
+      });
       done();
     });
   });
@@ -52,6 +59,9 @@ describe('Verify', function () {
     wrhs.verify({ pkg: 'whatever-package', env: 'prod', numFiles: 3 }, function (err, checks) {
       assume(err).is.falsey();
       assume(checks).has.length(mocks.missingFiles.length);
+      checks.forEach(chk => {
+        assume(chk).hasOwn('reason', 'Expect number of files in head 2 to equal 3');
+      });
       done();
     });
   });

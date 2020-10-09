@@ -19,10 +19,16 @@ class Verify {
   }
 
   /**
+   * @typedef {Object} VerificationFailure
+   * @prop {string} [buildId] ID of build being verified
+   * @prop {string} [uri] URI of file that failed
+   * @prop {string|Error} reason Reason for failure
+   */
+  /**
    * Fetches all files from one of the builds
    * @param {VerifyOptions} opts Options for the function
    * @param {BuildHead} head BuildHead returned from Warehouse.
-   * @param {async.AsyncResultArrayCallback<string>} done Continuation to respond to when complete.
+   * @param {async.AsyncResultArrayCallback<VerificationFailure>} done Continuation to respond to when complete.
    */
   verifyOne(opts, head, done) {
     const buildId = head.buildId;
@@ -43,9 +49,10 @@ class Verify {
     }
 
     if (numFiles) {
-      debug(`Expect number of files in head ${urls.length} to equal ${numFiles}`);
+      const reason = `Expect number of files in head ${urls.length} to equal ${numFiles}`;
+      debug(reason);
       if (numFiles > urls.length) {
-        done(null, [`https://${buildId}/missingfile`]);
+        done(null, [{ reason }]);
         return;
       }
     }
@@ -57,7 +64,7 @@ class Verify {
         .then(res => {
           if (res.status !== 200) {
             debug(`${buildId} | Fail ${uri}: ${res.status}`);
-            return next(null, uri);
+            return next(null, { buildId, uri, reason: `status ${res.status}` });
           }
 
           debug(`${buildId} | Fetch ok ${uri}`);
@@ -65,7 +72,7 @@ class Verify {
         })
         .catch(err => {
           debug(`${buildId} | Fail ${uri}: ${err}`);
-          return next(null, uri);
+          return next(null, { buildId, uri, reason: err });
         });
     }, done);
   }
