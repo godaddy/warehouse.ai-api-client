@@ -3,7 +3,27 @@
 const debug = require('diagnostics')('warehouse:files');
 const mime = require('mime-types');
 const fs = require('fs').promises;
+const crypto = require('crypto');
 const path = require('path');
+
+/**
+ * @const {string} HASH_ALGORITHM Hashing algorithm used for digest.
+ */
+const HASH_ALGORITHM = 'sha256';
+
+/**
+ * Generate digest for file.
+ *
+ * @param {Buffer} content File content to hash
+ * @returns {string} digest
+ * @private
+ */
+function digest(content) {
+  const hash = crypto.createHash(HASH_ALGORITHM);
+  hash.update(content);
+
+  return `${ HASH_ALGORITHM }-${ hash.digest('base64') }`;
+}
 
 /**
  * @typedef {import('./index.js')} Warehouse
@@ -65,7 +85,8 @@ class Files {
       attachments[basename] = {
         length: data.length,
         data: data.toString('utf-8'),
-        content_type: mime.lookup(file)
+        content_type: mime.lookup(file),
+        digest: digest(data)
       }
 
       return attachments;
