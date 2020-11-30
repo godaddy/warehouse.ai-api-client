@@ -66,7 +66,7 @@ function Warehouse(options) {
   this.packages = new Warehouse.Packages(this, options.packages);
   this.status = new Warehouse.Status(this, options.status);
   this.releaseLine = new Warehouse.ReleaseLine(this, options.releaseLine);
-  this.files = new Warehouse.Files(this);
+  this.files = new Warehouse.Files(this, options.files);
 }
 
 /**

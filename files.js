@@ -72,3 +72,8 @@ class Files {
     }, {});
   }
 }
+
+//
+// Expose the Files API.
+//
+module.exports = Files;
