@@ -130,7 +130,7 @@ class Builds {
     debug('Build metadata: pkg = %s, env = %s, version = %s', pkg, env, version);
     return this.warehouse.send(
       ['builds'].concat(pkg, env, version, meta).filter(Boolean).join('/'),
-      { query: { locale }},
+      { query: { locale } },
       fn
     );
   }
@@ -149,7 +149,7 @@ class Builds {
     const { pkg, env, version } = this._readParams(params);
     debug(`build promote: pkg = ${pkg}, env = ${env}, version = ${version}, promote = ${promote}`);
 
-    const opts = { method: 'PATCH', query: { promote }};
+    const opts = { method: 'PATCH', query: { promote } };
 
     return this.warehouse.send(
       ['builds'].concat(pkg, env, version).join('/'),
@@ -173,7 +173,7 @@ class Builds {
     const { pkg, env, version } = this._readParams(params);
     debug(`build promote: pkg = ${pkg}, env = ${env}, version = ${version}, build = ${build}`);
 
-    const opts = { method: 'PATCH', query: { build }};
+    const opts = { method: 'PATCH', query: { build } };
 
     return this.warehouse.send(
       ['promote'].concat(pkg, env, version).join('/'),

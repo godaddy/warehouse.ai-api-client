@@ -87,7 +87,7 @@ class Files {
   async getAttachments(files = []) {
     const content = await this.read(files);
 
-    return content.reduce(function reduce(attachments, { file, data }, i) {
+    return content.reduce(function reduce(attachments, { file, data }) {
       const basename = path.basename(file);
 
       attachments[basename] = {

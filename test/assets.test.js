@@ -50,7 +50,7 @@ describe('Assets', function () {
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('assets/files/some-pkg/prod/1.2.3',
-          { query: { locale: 'en-NZ', filter: 'foo%2Fbar' }});
+          { query: { locale: 'en-NZ', filter: 'foo%2Fbar' } });
         done();
       });
 
@@ -65,7 +65,7 @@ describe('Assets', function () {
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('assets/files/some-pkg/dev',
-          { query: { locale: 'en-US' }});
+          { query: { locale: 'en-US' } });
         done();
       });
     });
@@ -112,7 +112,7 @@ describe('Assets', function () {
     });
 
     it('fetches data from cache when enabled and parameters are the same', function (done) {
-      assets = new Assets(wrhs, { cache: { enabled: true }});
+      assets = new Assets(wrhs, { cache: { enabled: true } });
 
       assets.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -129,7 +129,7 @@ describe('Assets', function () {
     });
 
     it('fetches data from warehouse when cache is enabled and parameters are the different', function (done) {
-      assets = new Assets(wrhs, { cache: { enabled: true }});
+      assets = new Assets(wrhs, { cache: { enabled: true } });
 
       assets.get({ pkg: 'some-pkg', locale: 'en-NZ' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -146,7 +146,7 @@ describe('Assets', function () {
     });
 
     it('fetches data from warehouse when cache is enabled, parameters are the same, but bypassCache specified', function (done) {
-      assets = new Assets(wrhs, { cache: { enabled: true }});
+      assets = new Assets(wrhs, { cache: { enabled: true } });
 
       assets.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -163,7 +163,7 @@ describe('Assets', function () {
     });
 
     it('caches data', function (done) {
-      assets = new Assets(wrhs, { cache: { enabled: true }});
+      assets = new Assets(wrhs, { cache: { enabled: true } });
       assume(assets.cache).is.truthy();
       assume(assets.cache._caches[0]._items).is.truthy();
       assume(Object.keys(assets.cache._caches[0]._items).length).equals(0);
