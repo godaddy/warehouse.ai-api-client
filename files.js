@@ -49,20 +49,16 @@ class Files {
    * @public
    */
   async read(files = []) {
-    const root = this.root;
-    const content = await Promise.all(files.map(file => {
+    const content = await Promise.all(files.map(async file => {
       try {
-        return fs.readFile(file);
+        const result = await fs.readFile(file);
+        return result;
       } catch (error) {
-        debug(`Unable to read ${file}: ${ error.message }, resolving from ${ root }`);
+        debug(`Unable to read ${file}: ${ error.message }, resolving from ${ this.root }`);
       }
 
-      try {
-        file = path.resolve(this.root, file);
-        return fs.readFile(file);
-      } catch (err) {
-        return err;
-      }
+      file = path.join(this.root, file);
+      return fs.readFile(file);
     }));
 
     return content.filter(Boolean);
@@ -87,7 +83,7 @@ class Files {
         data: data.toString('utf-8'),
         content_type: mime.lookup(file),
         digest: digest(data)
-      }
+      };
 
       return attachments;
     }, {});
