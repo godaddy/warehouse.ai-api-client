@@ -61,7 +61,7 @@ class Files {
       return fs.readFile(file);
     }));
 
-    return content.filter(Boolean);
+    return content;
   }
 
   /**
