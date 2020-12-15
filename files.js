@@ -29,6 +29,11 @@ function digest(content) {
  * @typedef {import('./index.js')} Warehouse
  */
 /**
+ * @typedef {Object} File
+ * @property {string} file Full filename of read content
+ * @property {Buffer} data File content as Buffer
+ */
+/**
  * @constructor
  * @param {Warehouse} warehouse Reference to the Warehouse instance.
  * @param {Object} config configuration
@@ -45,20 +50,28 @@ class Files {
    * Read the content of the files.
    *
    * @param {string[]} [files=[]] Files to read.
-   * @returns {Promise<Buffer[]>} File content as Buffer.
+   * @returns {Promise<File[]>} File content and metadata.
    * @public
    */
   async read(files = []) {
     const content = await Promise.all(files.map(async file => {
       try {
-        const result = await fs.readFile(file);
-        return result;
+        const data = await fs.readFile(file);
+        return {
+          file,
+          data
+        };
       } catch (error) {
         debug(`Unable to read ${file}: ${ error.message }, resolving from ${ this.root }`);
       }
 
       file = path.join(this.root, file);
-      return fs.readFile(file);
+      const data = await fs.readFile(file);
+
+      return {
+        file,
+        data
+      };
     }));
 
     return content;
@@ -74,9 +87,8 @@ class Files {
   async getAttachments(files = []) {
     const content = await this.read(files);
 
-    return files.reduce(function reduce(attachments, file, i) {
+    return content.reduce(function reduce(attachments, { file, data }, i) {
       const basename = path.basename(file);
-      const data = content[i];
 
       attachments[basename] = {
         length: data.length,

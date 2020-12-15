@@ -26,8 +26,10 @@ describe('Files', function () {
 
         assume(result).to.be.an('array');
         assume(result).to.have.length(1);
-        assume(result[0]).to.be.instanceof(Buffer);
-        assume(result[0].toString('utf-8')).to.include(content);
+        assume(result[0]).to.be.an('object');
+        assume(result[0].data).to.be.instanceof(Buffer);
+        assume(result[0].file).to.include(filesArray[0]);
+        assume(result[0].data.toString('utf-8')).to.include(content);
       };
     }
 
