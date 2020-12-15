@@ -1,5 +1,9 @@
 # Changelog
 
+- **BREAKING**: require Node.js@12 minimal.
+- Update all dependencies.
+- Introduce `Files` class to generate CouchDB attachments.
+
 ## 5.0.0
 
 - **BREAKING:** `verify` now passes back the build ID and failure reason in addition to the URI that failed
