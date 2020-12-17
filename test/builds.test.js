@@ -70,7 +70,7 @@ describe('Builds', function () {
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/some-pkg/prod/1.2.3/meta',
-          { query: { locale: 'en-NZ' }});
+          { query: { locale: 'en-NZ' } });
         done();
       });
 
@@ -85,7 +85,7 @@ describe('Builds', function () {
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/some-pkg/dev',
-          { query: { locale: 'en-US' }});
+          { query: { locale: 'en-US' } });
         done();
       });
     });
@@ -133,7 +133,7 @@ describe('Builds', function () {
     });
 
     it('fetches data from cache when enabled and parameters are the same', function (done) {
-      builds = new Builds(wrhs, { cache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true } });
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -150,7 +150,7 @@ describe('Builds', function () {
     });
 
     it('fetches data from warehouse when cache is enabled and parameters are the different', function (done) {
-      builds = new Builds(wrhs, { cache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true } });
 
       builds.get({ pkg: 'some-pkg', locale: 'en-NZ' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -167,7 +167,7 @@ describe('Builds', function () {
     });
 
     it('fetches data from warehouse when cache is enabled, parameters are the same, but bypassCache specified', function (done) {
-      builds = new Builds(wrhs, { cache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true } });
 
       builds.get({ pkg: 'some-pkg' }, (error1, data1) => {
         assume(error1).is.falsey();
@@ -184,7 +184,7 @@ describe('Builds', function () {
     });
 
     it('caches data', function (done) {
-      builds = new Builds(wrhs, { cache: { enabled: true }});
+      builds = new Builds(wrhs, { cache: { enabled: true } });
       assume(builds.cache).is.truthy();
       assume(builds.cache._caches[0]._items).is.truthy();
       assume(Object.keys(builds.cache._caches[0]._items).length).equals(0);
@@ -222,7 +222,7 @@ describe('Builds', function () {
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/-/head',
-          { query: { env: 'prod', name: 'some-pkg' }});
+          { query: { env: 'prod', name: 'some-pkg' } });
         done();
       });
     });
@@ -233,7 +233,7 @@ describe('Builds', function () {
         assume(data).equals(buildData);
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/-/head',
-          { query: { env: 'dev', name: 'another-pkg' }});
+          { query: { env: 'dev', name: 'another-pkg' } });
         done();
       });
     });
@@ -289,7 +289,7 @@ describe('Builds', function () {
         assume(err).does.not.exist();
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/what/dev/1.0.0',
-          { method: 'PATCH', query: { promote: false }});
+          { method: 'PATCH', query: { promote: false } });
         done();
       });
     });
@@ -299,7 +299,7 @@ describe('Builds', function () {
         assume(err).does.not.exist();
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('builds/what/dev/1.0.0',
-          { method: 'PATCH', query: { promote: true }});
+          { method: 'PATCH', query: { promote: true } });
         done();
       });
     });
@@ -326,7 +326,7 @@ describe('Builds', function () {
         assume(err).does.not.exist();
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('promote/what/dev/1.0.0',
-          { method: 'PATCH', query: { build: false }});
+          { method: 'PATCH', query: { build: false } });
         done();
       });
     });
@@ -336,7 +336,7 @@ describe('Builds', function () {
         assume(err).does.not.exist();
         assume(sendStub).is.called(1);
         assume(sendStub).is.calledWithMatch('promote/what/dev/1.0.0',
-          { method: 'PATCH', query: { build: true }});
+          { method: 'PATCH', query: { build: true } });
         done();
       });
     });

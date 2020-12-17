@@ -129,7 +129,7 @@ class Assets {
     debug('Build metadata: pkg = %s, env = %s, version = %s', pkg, env, version, filter);
     return this.warehouse.send(
       ['assets', 'files'].concat(pkg, env, version).filter(Boolean).join('/'),
-      { query: { locale, filter }},
+      { query: { locale, filter } },
       fn
     );
   }

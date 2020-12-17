@@ -12,6 +12,7 @@ const Assets = require('./assets');
 const Packages = require('./packages');
 const Status = require('./status');
 const ReleaseLine = require('./release-line');
+const Files = require('./files');
 
 /**
  * Node.JS API to interact the Warehouse.
@@ -65,6 +66,7 @@ function Warehouse(options) {
   this.packages = new Warehouse.Packages(this, options.packages);
   this.status = new Warehouse.Status(this, options.status);
   this.releaseLine = new Warehouse.ReleaseLine(this, options.releaseLine);
+  this.files = new Warehouse.Files(this, options.files);
 }
 
 /**
@@ -250,6 +252,7 @@ Warehouse.Assets = Assets;
 Warehouse.Packages = Packages;
 Warehouse.Status = Status;
 Warehouse.ReleaseLine = ReleaseLine;
+Warehouse.Files = Files;
 
 //
 // Expose the API.
