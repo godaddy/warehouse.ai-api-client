@@ -1,5 +1,7 @@
 # Changelog
 
+### 6.0.0
+
 - **BREAKING**: require Node.js@12 minimal.
 - Update all dependencies.
 - Introduce `Files` class to generate CouchDB attachments.
