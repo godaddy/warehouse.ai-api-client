@@ -114,6 +114,59 @@ class Builds {
   }
 
   /**
+   * PUT a (pre-)build set of files. The files have to be present on disk.
+   *
+   * @param {string[]} files Full pathnames of files to read from disk.
+   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
+   * @param {Function} fn Completion callback.
+   * @returns {Warehouse} fluent interface.
+   * @public
+   */
+  put(files, params, fn) {
+    const { env, locale, pkg, version } = this._readParams(params);
+    let body;
+
+    if (!pkg || !env || !version || !files || !Array.isArray(files)) {
+      return fn(new Error('Invalid parameters supplied'));
+    }
+
+    // Read file content and prepare file attachments.
+    new Promise(async function async() {
+      const name = decodeURIComponent(pkg);
+      const attachments = await this.warehouse.files(files);
+
+      body = JSON.stringify({
+        'name': name,
+        'dist-tags': {
+          'latest': version
+        },
+        'versions': {
+          [version]: {
+            'name': name,
+            'version': version
+          }
+        },
+        '_attachments': attachments
+      });
+    }).then(body => {
+      this.warehouse.send(['builds', pkg, env], {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        query: { locale },
+        body
+      }, fn);
+    }).catch(error => {
+      debug('Error reading file attachments or creating body', pkg, env);
+
+      return fn(error);
+    });
+
+    return this.warehouse;
+  }
+
+  /**
    * Get build information. The cache is never used. This method assumes all the parameters have already been validated.
    *
    * @param {Object} options Options object describing the build to get
