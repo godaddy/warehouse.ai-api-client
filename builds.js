@@ -128,7 +128,7 @@ class Builds {
       return fn(new Error('Invalid parameters supplied'));
     }
 
-    // Read file content and prepare file attachments.
+    // Read file content and prepare a npm-like body with file attachments.
     const name = decodeURIComponent(pkg);
     await this.warehouse.files.getAttachments(files).then(attachments => {
       let body;
