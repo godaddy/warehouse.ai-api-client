@@ -225,7 +225,22 @@ describe('Builds', function () {
       });
     });
 
-    it('puts supplied files as attachments and npm-like package', function (done) {
+    it('supports scoped packages', function (done) {
+      builds = new Builds(wrhs);
+
+      builds.put([__filename], { pkg: '@some-scope/some-pkg', env: 'dev', version: '1.2.3' }, (error) => {
+        assume(error).is.falsey();
+        assume(sendStub).is.called(1);
+        assume(sendStub).is.calledWithMatch(['builds', '%40some-scope%2Fsome-pkg', 'dev']);
+
+        const args = sendStub.getCall(0).args[1];
+        assume(args.body).to.include('"name":"@some-scope/some-pkg"');
+
+        done();
+      });
+    });
+
+    it('puts supplies files as attachments and npm-like package', function (done) {
       builds = new Builds(wrhs);
 
       builds.put([__filename], { pkg: 'some-pkg', env: 'prod', version: '1.2.3' }, (error) => {

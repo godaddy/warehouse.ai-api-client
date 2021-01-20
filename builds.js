@@ -129,7 +129,7 @@ class Builds {
     }
 
     // Read file content and prepare a npm-like body with file attachments.
-    const name = decodeURIComponent(pkg);
+    const name = params.pkg;
     await this.warehouse.files.getAttachments(files).then(attachments => {
       let body;
 
