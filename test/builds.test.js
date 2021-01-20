@@ -200,6 +200,63 @@ describe('Builds', function () {
     });
   });
 
+  describe('.put', function () {
+    beforeEach(function () {
+      sendStub = sinon.stub(wrhs, 'send')
+        .yields(null)
+        .returns(wrhs);
+    });
+
+    it('returns error when no files are specified', function (done) {
+      builds = new Builds();
+      builds.put([], { pkg: 'some-pkg' }, error => {
+        assume(error).is.truthy();
+        assume(error.message).contains('Invalid parameters supplied');
+        done();
+      });
+    });
+
+    it('returns error when params are missing', function (done) {
+      builds = new Builds();
+      builds.put([], { pkg: 'some-pkg', version: null, env: 'dev' }, error => {
+        assume(error).is.truthy();
+        assume(error.message).contains('Invalid parameters supplied');
+        done();
+      });
+    });
+
+    it('puts supplied files as attachments and npm-like package', function (done) {
+      builds = new Builds(wrhs);
+
+      builds.put([__filename], { pkg: 'some-pkg', env: 'prod', version: '1.2.3' }, (error) => {
+        assume(error).is.falsey();
+        assume(sendStub).is.called(1);
+
+        const args = sendStub.getCall(0).args[1];
+        assume(args.headers).to.have.property('Content-Type', 'application/json');
+        assume(args.method).to.equal('PUT');
+        assume(args.body).to.include('"name":"some-pkg"');
+        assume(args.body).to.include('"dist-tags":{"latest":"1.2.3"}');
+        assume(args.body).to.include('"_attachments":{"builds.test.js":{');
+
+        done();
+      });
+    });
+
+    it('passes through error from warehouse', function (done) {
+      sendStub.yields(new Error('This is an error.')).returns(wrhs);
+
+      builds = new Builds(wrhs);
+
+      builds.put([__filename], { pkg: 'some-pkg', version: '1.0.0', env: 'dev' }, error => {
+        assume(error).is.truthy();
+        assume(error.message).contains('This is an error.');
+        assume(sendStub).is.called(1);
+        done();
+      });
+    });
+  });
+
   describe('.heads', function () {
     beforeEach(function () {
       builds = new Builds(wrhs);

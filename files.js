@@ -1,4 +1,4 @@
-'use strict';
+
 
 const debug = require('diagnostics')('warehouse:files');
 const mime = require('mime-types');
