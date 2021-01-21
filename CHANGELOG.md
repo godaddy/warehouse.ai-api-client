@@ -1,5 +1,7 @@
 # Changelog
 
+### 6.1.0
+
 - Add `put` functionality to `builds`.
 
 ### 6.0.0

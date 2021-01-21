@@ -1,7 +1,7 @@
 {
   "name": "warehouse.ai-api-client",
   "description": "Node.JS API to communicate with warehouse.ai",
-  "version": "6.0.0",
+  "version": "6.1.0",
   "main": "index.js",
   "scripts": {
     "test:mocha": "mocha test/*.test.js",
