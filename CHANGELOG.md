@@ -1,5 +1,7 @@
 # Changelog
 
+- Add `put` functionality to `builds`.
+
 ### 6.0.0
 
 - **BREAKING**: require Node.js@12 minimal.

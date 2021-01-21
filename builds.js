@@ -114,6 +114,60 @@ class Builds {
   }
 
   /**
+   * PUT a (pre-)build set of files. The files have to be present on disk.
+   *
+   * @param {string[]} files Full pathnames of files to read from disk.
+   * @param {Object} params Parameters that specify pkg, env, version and/or locale.
+   * @param {Function} fn Completion callback.
+   * @returns {Warehouse} fluent interface.
+   * @public
+   */
+  put(files, params, fn) {
+    const { env, locale, pkg, version } = this._readParams(params);
+
+    if (!pkg || !env || !version || !files || !Array.isArray(files)) {
+      return fn(new Error('Invalid parameters supplied'));
+    }
+
+    // Read file content and prepare a npm-like body with file attachments.
+    const name = params.pkg;
+    this.warehouse.files.getAttachments(files).then(attachments => {
+      let body;
+
+      try {
+        body = JSON.stringify({
+          'name': name,
+          'dist-tags': {
+            latest: version
+          },
+          'versions': {
+            [version]: {
+              name: name,
+              version: version
+            }
+          },
+          '_attachments': attachments
+        });
+      } catch (error) {
+        debug('Error reading file attachments or creating body', pkg, env);
+
+        return fn(error);
+      }
+
+      this.warehouse.send(['builds', pkg, env], {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        query: { locale },
+        body
+      }, fn);
+    });
+
+    return this.warehouse;
+  }
+
+  /**
    * Get build information. The cache is never used. This method assumes all the parameters have already been validated.
    *
    * @param {Object} options Options object describing the build to get
