@@ -243,7 +243,7 @@ describe('Builds', function () {
     it('puts supplies files as attachments and npm-like package', function (done) {
       builds = new Builds(wrhs);
 
-      builds.put([__filename], { pkg: 'some-pkg', env: 'prod', version: '1.2.3' }, (error) => {
+      const fluentResult = builds.put([__filename], { pkg: 'some-pkg', env: 'prod', version: '1.2.3' }, (error) => {
         assume(error).is.falsey();
         assume(sendStub).is.called(1);
 
@@ -256,6 +256,8 @@ describe('Builds', function () {
 
         done();
       });
+
+      assume(fluentResult).to.equal(wrhs);
     });
 
     it('passes through error from warehouse', function (done) {

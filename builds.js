@@ -119,9 +119,10 @@ class Builds {
    * @param {string[]} files Full pathnames of files to read from disk.
    * @param {Object} params Parameters that specify pkg, env, version and/or locale.
    * @param {Function} fn Completion callback.
+   * @returns {Warehouse} fluent interface.
    * @public
    */
-  async put(files, params, fn) {
+  put(files, params, fn) {
     const { env, locale, pkg, version } = this._readParams(params);
 
     if (!pkg || !env || !version || !files || !Array.isArray(files)) {
@@ -130,7 +131,7 @@ class Builds {
 
     // Read file content and prepare a npm-like body with file attachments.
     const name = params.pkg;
-    await this.warehouse.files.getAttachments(files).then(attachments => {
+    this.warehouse.files.getAttachments(files).then(attachments => {
       let body;
 
       try {
@@ -162,6 +163,8 @@ class Builds {
         body
       }, fn);
     });
+
+    return this.warehouse;
   }
 
   /**
