@@ -1,55 +1,36 @@
 {
   "name": "warehouse.ai-api-client",
+  "version": "7.0.0",
   "description": "Node.JS API to communicate with warehouse.ai",
-  "version": "6.1.0",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test:mocha": "mocha test/*.test.js",
-    "test:debug": "mocha --inspect-brk test/*.test.js",
-    "test": "nyc --reporter=text --reporter=json-summary npm run test:mocha",
-    "lint": "eslint-godaddy --fix *.js test/*.js",
-    "posttest": "npm run lint"
+    "test": "echo \"Error: no test specified\""
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:warehouseai/warehouse.ai-api-client.git"
+    "url": "git+https://github.com/warehouseai/warehouse.ai-api-client.git"
   },
   "keywords": [
-    "API",
-    "node",
-    "warehouse.ai"
+    "warehouse",
+    "sdk"
   ],
   "author": "GoDaddy Operating Company, LLC",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/warehouseai/warehouse.ai-api-client/issues"
+  },
+  "homepage": "https://github.com/warehouseai/warehouse.ai-api-client#readme",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=14.0.0"
   },
   "dependencies": {
-    "async": "^3.2.0",
-    "demolish": "^1.0.2",
-    "diagnostics": "^2.0.2",
-    "fetch-retry": "^4.0.1",
-    "mime-types": "^2.1.27",
-    "node-fetch": "^2.6.1",
-    "optional-options": "^1.0.0",
-    "out-of-band-cache": "^1.1.0",
-    "querystringify": "^2.2.0",
-    "retryme": "^1.0.0"
+    "axios": "^0.27.2"
   },
   "devDependencies": {
-    "assume": "^2.3.0",
-    "assume-sinon": "^1.1.0",
-    "babel-eslint": "^10.1.0",
-    "clone": "^2.1.1",
-    "eslint": "^7.15.0",
-    "eslint-config-godaddy": "^4.0.1",
-    "eslint-plugin-json": "^2.1.2",
-    "eslint-plugin-mocha": "^8.0.0",
-    "eslint-plugin-react": "^7.21.5",
-    "jscs-jsx-rules": "0.0.1",
-    "mocha": "^8.2.1",
-    "nock": "^13.0.5",
+    "mocha": "^10.0.0",
+    "nock": "^13.2.7",
     "nyc": "^15.1.0",
-    "sinon": "^9.2.2"
+    "prettier": "^2.7.1",
+    "sinon": "^14.0.0"
   }
 }
