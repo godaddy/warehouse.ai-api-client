@@ -3,8 +3,14 @@
   "version": "7.0.0",
   "description": "Node.JS API to communicate with warehouse.ai",
   "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\""
+    "lint": "prettier --write lib",
+    "release": "standard-version -t ''",
+    "test": "tap lib/**/*.test.js",
+    "posttest": "npm run lint"
   },
   "repository": {
     "type": "git",
@@ -27,10 +33,16 @@
     "axios": "^0.27.2"
   },
   "devDependencies": {
-    "mocha": "^10.0.0",
     "nock": "^13.2.7",
-    "nyc": "^15.1.0",
     "prettier": "^2.7.1",
-    "sinon": "^14.0.0"
+    "sinon": "^14.0.0",
+    "standard-version": "^9.5.0",
+    "tap": "^16.3.0"
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true
   }
 }
