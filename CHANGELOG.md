@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.0.3](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.2...7.0.3) (2022-07-07)
+
+
+### Features
+
+* **object:** add getHead ([eb71416](https://github.com/warehouseai/warehouse.ai-api-client/commit/eb71416034b8dfb93cce9c345bfdaba0e3b5aac8))
+
 ### [7.0.2](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.1...7.0.2) (2022-07-07)
 
 ### [7.0.1](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.0...7.0.1) (2022-07-07)
