@@ -7,28 +7,53 @@
 
 API client to communicate with [warehouse.ai][warehouse.ai].
 
-
 ## Install
 
 ```bash
 npm install warehouse.ai-api-client --save
 ```
 
-
 ## Usage
 
 ```js
-const Warehouse = require('warehouse.ai-api-client');
-const wrhs = new Warehouse('https://warehouse-instance');
+const { WarehouseSDK } = require('warehouse.ai-api-client');
+const sdk = WarehouseSDK({ baseUrl, username, password });
+
+const main = async () => {
+  // Create an object
+  await sdk.object().create({
+    name: 'my-object',
+    env: 'development',
+    expiration: '365d',
+    variant: 'en-US',
+    version: '1.0.0',
+    data: { foo: 'bar' }
+  });
+
+  // Get an object
+  const result = await sdk.object().get({
+    name: 'my-object',
+    env: 'development',
+    acceptedVariants: ['en-US'],
+    version: '1.0.0'
+  });
+
+  // Set object head
+  await sdk.object().setHead({
+    name: 'my-object',
+    env: 'development',
+    version: '1.0.0'
+  });
+
+  // Get head
+  const result = await sdk.object().getHead({
+    name: 'my-object',
+    env: 'development'
+  });
+};
+
+main().catch(console.error);
 ```
-
-TBD
-
-
-## Configuration
-
-TBD
-
 
 ## Test
 
