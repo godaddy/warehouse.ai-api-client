@@ -28,7 +28,8 @@
   },
   "homepage": "https://github.com/warehouseai/warehouse.ai-api-client#readme",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=12.0.0",
+    "npm": ">=7.6.0"
   },
   "dependencies": {
     "axios": "^0.27.2",
@@ -38,6 +39,7 @@
     "tmp": "^0.2.1"
   },
   "devDependencies": {
+    "@types/node-fetch": "^2.6.2",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "sinon": "^14.0.0",
