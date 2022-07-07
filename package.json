@@ -1,8 +1,9 @@
 {
   "name": "warehouse.ai-api-client",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "Node.JS API to communicate with warehouse.ai",
-  "main": "lib/index.js",
+  "main": "./lib/index.js",
+  "module": "./lib/index.js",
   "directories": {
     "lib": "lib"
   },
