@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 
-### [7.0.4](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.4...7.0.5) (2023-01-20)
+### [7.0.5](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.4...7.0.5) (2023-01-20)
 
 * Removes npm-shrinkwrap.json in favor of package-lock.json
 
