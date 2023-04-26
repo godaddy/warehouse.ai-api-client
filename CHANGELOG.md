@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.1.0](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.5...7.1.0) (2023-04-26)
+
+
+### Features
+
+* add env and hook endpoints ([e7cc6c7](https://github.com/warehouseai/warehouse.ai-api-client/commit/e7cc6c7b5c9325c420b2d8172bba4728ffb033f5))
 
 ### [7.0.5](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.0.4...7.0.5) (2023-01-20)
 
