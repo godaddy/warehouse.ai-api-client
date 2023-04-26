@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [7.1.2](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.1.1...7.1.2) (2023-04-26)
+
+
+### Bug Fixes
+
+* file names ([ef14263](https://github.com/warehouseai/warehouse.ai-api-client/commit/ef14263ea9c686f48233435f9d0faff399b95c83))
+
 ### [7.1.1](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.1.0...7.1.1) (2023-04-26)
 
 
