@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [7.3.0](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.2.3...7.3.0) (2025-04-03)
+
+
+### Features
+
+* **gzip:** make gzip configurable ([#44](https://github.com/warehouseai/warehouse.ai-api-client/issues/44)) ([c8cfe5c](https://github.com/warehouseai/warehouse.ai-api-client/commit/c8cfe5c25691672691173b3b541edaf7edf4eb03))
+
 ### [7.2.3](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.2.2...7.2.3) (2025-04-01)
 
 
