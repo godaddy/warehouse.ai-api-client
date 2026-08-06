@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "prettier --write lib",
     "release": "standard-version -t ''",
-    "test": "tap lib/**/*.test.js",
+    "test": "tap 'lib/**/*.test.js'",
     "posttest": "npm run lint"
   },
   "repository": {
@@ -44,6 +44,9 @@
     "sinon": "^14.0.0",
     "standard-version": "^9.5.0",
     "tap": "^16.3.0"
+  },
+  "tap": {
+    "coverage": false
   },
   "prettier": {
     "trailingComma": "none",
