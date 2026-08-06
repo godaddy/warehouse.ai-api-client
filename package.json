@@ -9,6 +9,7 @@
   },
   "scripts": {
     "lint": "prettier --write lib",
+    "changeset": "changeset",
     "version": "changeset version && npm install --lockfile-only",
     "test": "tap 'lib/**/*.test.js'",
     "posttest": "npm run lint"
