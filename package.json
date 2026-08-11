@@ -9,7 +9,7 @@
   },
   "scripts": {
     "lint": "prettier --write lib",
-    "release": "standard-version -t ''",
+    "release": "commit-and-tag-version -t ''",
     "test": "tap 'lib/**/*.test.js'",
     "posttest": "npm run lint"
   },
@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/warehouseai/warehouse.ai-api-client#readme",
   "engines": {
-    "node": ">=12.0.0",
+    "node": ">=22.0.0",
     "npm": ">=7.6.0"
   },
   "dependencies": {
@@ -42,7 +42,7 @@
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "sinon": "^14.0.0",
-    "standard-version": "^9.5.0",
+    "commit-and-tag-version": "^13.0.0",
     "tap": "^18.8.0"
   },
   "tap": {
