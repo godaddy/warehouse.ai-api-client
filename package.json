@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/warehouseai/warehouse.ai-api-client.git"
+    "url": "git+ssh://git@github.com:godaddy/warehouse.ai-api-client.git"
   },
   "keywords": [
     "warehouse",
@@ -24,9 +24,9 @@
   "author": "GoDaddy Operating Company, LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/warehouseai/warehouse.ai-api-client/issues"
+    "url": "https://github.com/godaddy/warehouse.ai-api-client/issues"
   },
-  "homepage": "https://github.com/warehouseai/warehouse.ai-api-client#readme",
+  "homepage": "https://github.com/godaddy/warehouse.ai-api-client",
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=7.6.0"
