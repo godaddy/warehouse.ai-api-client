@@ -9,13 +9,13 @@
   },
   "scripts": {
     "lint": "prettier --write lib",
-    "release": "standard-version -t ''",
-    "test": "tap lib/**/*.test.js",
+    "release": "commit-and-tag-version -t ''",
+    "test": "tap 'lib/**/*.test.js'",
     "posttest": "npm run lint"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/warehouseai/warehouse.ai-api-client.git"
+    "url": "git+ssh://git@github.com:godaddy/warehouse.ai-api-client.git"
   },
   "keywords": [
     "warehouse",
@@ -24,11 +24,11 @@
   "author": "GoDaddy Operating Company, LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/warehouseai/warehouse.ai-api-client/issues"
+    "url": "https://github.com/godaddy/warehouse.ai-api-client/issues"
   },
-  "homepage": "https://github.com/warehouseai/warehouse.ai-api-client#readme",
+  "homepage": "https://github.com/godaddy/warehouse.ai-api-client",
   "engines": {
-    "node": ">=12.0.0",
+    "node": ">=22.0.0",
     "npm": ">=7.6.0"
   },
   "dependencies": {
@@ -39,11 +39,14 @@
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.2",
+    "commit-and-tag-version": "^13.0.0",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "sinon": "^14.0.0",
-    "standard-version": "^9.5.0",
-    "tap": "^16.3.0"
+    "tap": "^21.7.5"
+  },
+  "tap": {
+    "allow-incomplete-coverage": true
   },
   "prettier": {
     "trailingComma": "none",

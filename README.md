@@ -61,4 +61,20 @@ main().catch(console.error);
 npm test
 ```
 
+## Release
+
+1. Run `commit-and-tag-version` to bump the version, update the changelog, and create a git tag:
+
+   ```bash
+   npm run release
+   ```
+
+2. Push the commit and the tag:
+
+   ```bash
+   git push --follow-tags
+   ```
+
+The `release.yaml` GitHub Actions workflow detects the new tag and publishes the package to npm automatically.
+
 [warehouse.ai]: https://github.com/godaddy/warehouse.ai
