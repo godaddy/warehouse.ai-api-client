@@ -63,7 +63,7 @@ npm test
 
 ## Release
 
-1. Run `standard-version` to bump the version, update the changelog, and create a git tag:
+1. Run `commit-and-tag-version` to bump the version, update the changelog, and create a git tag:
 
    ```bash
    npm run release
