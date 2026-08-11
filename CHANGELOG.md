@@ -1,7 +1,16 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [8.0.0](https://github.com/godaddy/warehouse/compare/7.3.1...8.0.0) (2026-08-11)
+
+### ⚠ BREAKING CHANGES
+
+* **ci:** upgrade to Node 22, add unit tests, fix CI pipeline (#47)
+
+### Features
+
+* **ci:** upgrade to Node 22, add unit tests, fix CI pipeline ([#47](https://github.com/godaddy/warehouse/issues/47)) ([1a0e3e5](https://github.com/godaddy/warehouse/commit/1a0e3e5d8f88fa1ad46dfbbedbb16aefce8de797))
 ## [7.3.0](https://github.com/warehouseai/warehouse.ai-api-client/compare/7.2.3...7.3.0) (2025-04-03)
 
 
