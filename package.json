@@ -39,11 +39,11 @@
   },
   "devDependencies": {
     "@types/node-fetch": "^2.6.2",
+    "commit-and-tag-version": "^13.0.0",
     "nock": "^13.2.7",
     "prettier": "^2.7.1",
     "sinon": "^14.0.0",
-    "commit-and-tag-version": "^13.0.0",
-    "tap": "^18.8.0"
+    "tap": "^21.7.5"
   },
   "tap": {
     "allow-incomplete-coverage": true
