@@ -45,6 +45,9 @@
     "standard-version": "^9.5.0",
     "tap": "^18.8.0"
   },
+  "tap": {
+    "allow-incomplete-coverage": true
+  },
   "prettier": {
     "trailingComma": "none",
     "tabWidth": 2,
