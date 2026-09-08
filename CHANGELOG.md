@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [8.1.0](https://github.com/godaddy/warehouse/compare/8.0.0...8.1.0) (2026-09-08)
+
+### Features
+
+* **request:** add optional agent support to WarehouseRequest ([#51](https://github.com/godaddy/warehouse/issues/51)) ([8021012](https://github.com/godaddy/warehouse/commit/80210127a885ecbd550a20f52b212795ffee08f0))
 ## [8.0.0](https://github.com/godaddy/warehouse/compare/7.3.1...8.0.0) (2026-08-11)
 
 ### ⚠ BREAKING CHANGES
